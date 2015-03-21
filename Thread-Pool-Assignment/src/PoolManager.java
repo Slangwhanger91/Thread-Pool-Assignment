@@ -9,9 +9,9 @@ public class PoolManager {
 	
 	private boolean stop_and_exit;
 
-	PoolManager(int p, int t/*TODO*/){
+	PoolManager(int p/*TODO*/){
 		threadsArr = new PoolThread[p];
-		PM_Tasks = new Task[t];
+		//PM_Tasks = new Task[t];
 
 		All_Threads_Busy = NoTasks = stop_and_exit = false;
 
@@ -35,10 +35,6 @@ public class PoolManager {
 		}
 	}
 	
-	public void toSubmit(int k, int r){
-		//TODO
-	}
-
 	/**Stops the PoolManager from working and exit.*/
 	public void stop_and_exit(){
 		stop_and_exit = true;
