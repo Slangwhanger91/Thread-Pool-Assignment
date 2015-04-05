@@ -6,7 +6,7 @@ public class Feeder {
 	
 	Feeder(){
 		task_Q = new ArrayList<Task>();
-	}d
+	}
 	
 	/**
 	 * @param k - the number of expressions of the form (1.1) that have to be evaluated.
