@@ -10,15 +10,19 @@ public class User {
 		if(t1.getState() == Thread.State.WAITING)
 			System.out.println("Waiting: true");
 		*/	
-		int s=2;
+		int s=4;
 		T_1 t1 = new T_1(7);
 		MyT mt1 = new MyT(t1, s);
 		MyT mt2 = new MyT(t1, s);
 		MyT mt3 = new MyT(t1, s);
 		MyT mt4 = new MyT(t1, s);
+		if(!t1.isDone())
 		mt1.start();
+		if(!t1.isDone())
 		mt2.start();
+		if(!t1.isDone())
 		mt3.start();
+		if(!t1.isDone())
 		mt4.start();
 		try {
 			Thread.sleep(1000);
@@ -42,10 +46,9 @@ class MyT extends Thread{
 	@Override
 	public void run() {
 		t1.set_n(s);
-		t1.calculateSum(s);
+		t1.calculateMul(s);
 	}
 }
-
 /*class PoolThread extends Thread{
 
 	Task task;
