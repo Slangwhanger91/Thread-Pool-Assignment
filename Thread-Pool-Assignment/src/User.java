@@ -2,13 +2,19 @@
 public class User {
 
 	public static void main(String[] args) {
-		
+		/*
 		PoolManager.PoolThread t1 = new PoolManager(10).new PoolThread();
 		t1.start();
 		try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
 		System.out.println("get state: " + t1.getState());
 		if(t1.getState() == Thread.State.WAITING)
 			System.out.println("Waiting: true");
+		*/	
+		int s=6000;
+		T_1 t1 = new T_1(s);
+		t1.set_n(s);
+		t1.calculateSum(s);
+		System.out.println(t1.report());
 	}
 
 

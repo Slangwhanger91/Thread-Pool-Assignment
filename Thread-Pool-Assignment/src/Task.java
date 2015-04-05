@@ -1,61 +1,72 @@
-import java.util.concurrent.atomic.AtomicInteger;
-
 
 abstract public class Task {
-	AtomicInteger final_result;
+	double final_result;
+	int index;
+	protected int n;
+	protected int nSize,mSize;
 	
-	public Task(){
-		final_result = new AtomicInteger(0);
+	public Task(int n){
+		final_result = 0;
+		index = 1;
+		this.n = n;nSize=n;
+	}
+	public Task(int n,int m){
+		this(n);
+		mSize=m;
 	}
 	
-	public void fill_result(int partial_result){
-		final_result.addAndGet(partial_result);
+	public synchronized void fill_result(double partial_result){
+		final_result+=partial_result;
 	}
 	
-	public int report(){
-		return final_result.get();
+	public double report(){
+		return final_result;
 	}
 	
-	abstract public int calculate();
+	public int get_n(){
+		return n;
+	}
+	public synchronized void set_n(int s){
+		index += s;
+		n -= s;
+	}
+	
+	abstract public void calculateSum(int s);
 }
 
 /**1.1*/
 class T_1 extends Task{
-	private AtomicInteger n;
 	
 	public T_1(int n){
-		super();
-		this.n = new AtomicInteger(n);
-	}
-	
-	public void set_n(int s){
-		n.addAndGet(-s);
-	}
-	
-	public int get_n(){
-		return n.get();
+		super(n);
 	}
 
 	@Override
-	public int calculate() {
-		// TODO Auto-generated method stub
-		return 0;
+	public void calculateSum(int s) {
+		double temp_result = final_result;
+		int i=index-s;
+		for(;i<index && i<=nSize;i++){
+			if(i%2==0){
+				temp_result=temp_result+1/(2.0*i+1);
+			}else{
+				temp_result=temp_result-1/(2.0*i+1);
+			}
+		}
+		fill_result(temp_result);
 	}
+
 }
 
 /**1.2*/
 class T_2 extends Task{
-	private Integer m, l;
 	
 	public T_2(int m, int l){
-		super();
-		this.m = m;
-		this.l = l;
+		super(m,l);
 	}
 
-	public int calculate() {
-		// TODO Auto-generated method stub
-		return 0;
+	@Override
+	public void calculateSum(int s) {
+		
 	}
 	
 	

@@ -14,15 +14,11 @@ public class PoolManager {
 	private boolean stop_and_exit;
 	
 	PoolManager(int p){
+		lock = new Object();
 		threadsArr = new PoolThread[p];
-
 		NoTasks = true;
 		All_Threads_Busy = stop_and_exit = false;
-
 		for (PoolThread PT : threadsArr) PT = new PoolThread();
-
-		//TODO PM_Tasks
-
 		execute();
 	}
 	
