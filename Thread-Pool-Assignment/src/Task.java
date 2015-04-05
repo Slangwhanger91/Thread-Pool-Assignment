@@ -43,13 +43,14 @@ class T_1 extends Task{
 
 	@Override
 	public void calculateSum(int s) {
-		double temp_result = final_result;
+		double temp_result = 0;
 		int i=index-s;
 		for(;i<index && i<=nSize;i++){
+			double temp = (1.0/(2.0*i+1));
 			if(i%2==0){
-				temp_result=temp_result+1/(2.0*i+1);
+				temp_result=temp_result+temp;
 			}else{
-				temp_result=temp_result-1/(2.0*i+1);
+				temp_result=temp_result-temp;
 			}
 		}
 		fill_result(temp_result);

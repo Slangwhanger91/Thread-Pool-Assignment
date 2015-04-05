@@ -10,15 +10,40 @@ public class User {
 		if(t1.getState() == Thread.State.WAITING)
 			System.out.println("Waiting: true");
 		*/	
-		int s=6000;
-		T_1 t1 = new T_1(s);
-		t1.set_n(s);
-		t1.calculateSum(s);
+		int s=2;
+		T_1 t1 = new T_1(7);
+		MyT mt1 = new MyT(t1, s);
+		MyT mt2 = new MyT(t1, s);
+		MyT mt3 = new MyT(t1, s);
+		MyT mt4 = new MyT(t1, s);
+		mt1.start();
+		mt2.start();
+		mt3.start();
+		mt4.start();
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		System.out.println(t1.report());
 	}
 
 
 
+}
+
+class MyT extends Thread{
+	Task t1;int s;
+	public MyT(Task _t1,int _s){
+		t1=_t1;s=_s;
+	}
+	
+	@Override
+	public void run() {
+		t1.set_n(s);
+		t1.calculateSum(s);
+	}
 }
 
 /*class PoolThread extends Thread{
