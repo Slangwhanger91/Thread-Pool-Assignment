@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 
-public class Feeder {
+public class Feeder extends Thread{
 	ArrayList<Task> task_Q;
 	
 	Feeder(){
