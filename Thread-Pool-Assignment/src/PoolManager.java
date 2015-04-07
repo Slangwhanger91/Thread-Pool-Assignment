@@ -1,63 +1,85 @@
-public class PoolManager {
-	private PoolThread[] threadsArr;
-	private Task PM_Tasks[];
-	
+import java.util.LinkedList;
+import java.util.Queue;
+
+
+
+
+public class PoolManager extends Thread{
+	private PoolThread[] threadsArr;//p threads to work with
+	//private Task PM_Tasks[];//t tasks to do
+	private Queue<Task> task_Q;
+
 	private boolean All_Threads_Busy;
 	private boolean NoTasks;
-	Object lock;
-	
-	private int s, m;
-	
+	private Object pm_lock;
+
+	/**amount of tasks each thread is allowed to perform*/
+	private int s, m, t;
+
 	private boolean stop_and_exit;
-	
-	PoolManager(int p){
-		lock = new Object();
-		threadsArr = new PoolThread[p];
+
+	PoolManager(int p, int s, int m, int t){
+		pm_lock = new Object();
+
 		NoTasks = true;
+		this.t = t;
 		All_Threads_Busy = stop_and_exit = false;
-		for (PoolThread PT : threadsArr) PT = new PoolThread();
-		execute();
-	}
-	
-	/**
-	 * @param k - the number of expressions of the form (1.1) that have to be evaluated. <b>(Feeder related)</b>.
-	 * @param r - the number of expressions of the form (1.2) that have to be evaluated. <b>(Feeder related)</b>.
-	 * @param n_values_1 - the k values of n for each expression (1.1) that have to be evaluated. <b>(Feeder related)</b>.
-	 * @param l_values_2 - the r values of ` for each expression (1.2) that have to be evaluated. <b>(Feeder related)</b>.
-	 * @param m_values_2 - the r values of ` for each expression (1.2) that have to be evaluated. <b>(Feeder related)</b>.
-	 * @param t - is the limit to the amount of tasks stored within the <b>PoolManager</b>.
-	 * @param s - the number of summands each <b>PoolThread</b> is allowed to execute.
-	 * @param m - the number of multiplicands each <b>PoolThread</b> is allowed to execute.
-	 */
-	public void solution(int k, int r, int[] n_values_1, int[] l_values_2, int[] m_values_2,
-			int t, int s, int m){
-		//TODO
+
+		//pool of threads
+		threadsArr = new PoolThread[p];
+		for (PoolThread PT : threadsArr) (PT = new PoolThread()).start();
+
+		//limitations for each thread
+		this.s = s; this.m = m;
+
+		//empty array of tasks to perform
+		task_Q = new LinkedList<Task>();
+
+		start();
 	}
 
-	private void execute(){
+	/**for the use of the Feeder class*/
+	public boolean addTask(Task T){
+		if(task_Q.size() == t) return false;
+		task_Q.add(T); return true;
+	}
+
+	public void wakeUp(){pm_lock.notify();}
+
+	private void wakeUpFeeder(){this.notify();}
+
+	public void run(){
 		while(!stop_and_exit){
 
 			//PoolManager sleeps while there's nothing to do
-			while(All_Threads_Busy || NoTasks){
-				try {lock.wait();}catch (InterruptedException e) {e.printStackTrace();}
+			while(!task_Q.isEmpty()){
+				while(!task_Q.peek().isDone()){
+					for (PoolThread pt : threadsArr) {
+						if(pt.getState().equals(Thread.State.WAITING)){
+							pt.set_task(task_Q.peek());
+							break;
+						}
+					}
+				}
+				task_Q.poll();
+				wakeUpFeeder();
 			}
+			//try {pm_lock.wait();}catch (InterruptedException e) {e.printStackTrace();}
 			//Done sleeping, a thread unlocked or Feeder refilled
-			
-			
-		}
+		}//stop_and_wait
+
 	}
-	
+
 	/**Stops the PoolManager from working and exit.*/
 	public void stop_and_exit(){
 		stop_and_exit = true;
 	}
-	
-	
-	
-	
+
+
+
+
 	/**Must only be known to PoolManager and have no interaction with any other class.*/
 	class PoolThread extends Thread{
-
 		private Task task;
 		private Object lock = new Object();
 
@@ -69,8 +91,8 @@ public class PoolManager {
 
 		public void run(){
 			while(true){
-				//TODO perform task
-
+				task.calculate(m, s);
+				//wakeUp();
 				synchronized(lock){
 					try {lock.wait();} catch (InterruptedException e) {e.printStackTrace();}
 				}

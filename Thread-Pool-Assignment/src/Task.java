@@ -20,6 +20,10 @@ abstract public class Task {
 		available_tasks = new Vector<node>();
 	}
 
+	/**
+	 * @param mul - multiplication operations to do.
+	 * @param sum - summand operations to do.
+	 */
 	public Task(int mul, int sum){
 		this(mul);
 		sum_todo = sum;
