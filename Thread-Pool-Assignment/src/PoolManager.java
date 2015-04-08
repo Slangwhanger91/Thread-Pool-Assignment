@@ -76,12 +76,15 @@ public class PoolManager extends Thread{
 				task_Q.poll();
 				wakeUpFeeders();
 			}
+			
+			System.out.println("stuck here " + results.returnSizes() + "/20");
 		}
 		synchronized (results) {
 			results.notify();
 		}
 		terminateThreads();
 		
+		System.out.println("PM finished " +  results.returnSizes() + "/20");
 	}
 	/**Stops the PoolManager from working and exit.*/
 	
@@ -120,6 +123,8 @@ public class PoolManager extends Thread{
 				}
 				task = null;
 			}
+			
+			System.out.println("thread finished");
 		}
 
 		@SuppressWarnings("serial")

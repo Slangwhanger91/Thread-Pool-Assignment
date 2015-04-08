@@ -22,5 +22,7 @@ public class Feeder extends Thread{
 				} catch (InterruptedException e) {e.printStackTrace();}
 			}
 		}
+		
+		System.out.println("feeder finished");
 	}
 }

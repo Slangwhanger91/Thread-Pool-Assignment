@@ -16,6 +16,10 @@ public class Results extends Thread{
 		this.start();
 	}
 	
+	public int returnSizes(){//delete this
+		return report_T1.size()+report_T2.size();
+	}
+	
 	public synchronized boolean isConatianAllResults(){
 		return report_T1.size()+report_T2.size() == t1_size+t2_size;
 	}
@@ -31,7 +35,7 @@ public class Results extends Thread{
 	
 	@Override
 	public void run() {
-		if(!isConatianAllResults()){
+		while(!isConatianAllResults()){//changed
 			synchronized (this) {
 				try {
 					this.wait();
@@ -43,12 +47,16 @@ public class Results extends Thread{
 		}
 		System.out.println("print all expressions of type (1.1) first");
 		while(!report_T1.isEmpty()){
-			System.out.println(report_T1.remove(0));
+			//System.out.println(report_T1.remove(0));
+			report_T1.remove(0);
 		}
 		System.out.println("print all expressions of type (1.2) second");
 		while(!report_T2.isEmpty()){
-			System.out.println(report_T2.remove(0));
+			//System.out.println(report_T2.remove(0));
+			report_T2.remove(0);
 		}
+		
+		System.out.println("result finished");
 	}
 	
 	private class ReportT1{
