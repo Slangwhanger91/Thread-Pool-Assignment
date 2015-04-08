@@ -13,7 +13,9 @@ public class Feeder extends Thread{
 	
 	public void run(){
 		for (int n = 0; n < allTasks.size(); n++) {
-			if(!pm.addTask(allTasks.remove(n))){
+			boolean flag = pm.addTask(allTasks.get(n));
+			if(!flag){
+				n--;
 				try {
 					synchronized (pm) {pm.wait();}
 				} catch (InterruptedException e) {e.printStackTrace();}

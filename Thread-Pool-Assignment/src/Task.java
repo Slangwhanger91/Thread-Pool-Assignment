@@ -10,7 +10,7 @@ abstract public class Task {
 	protected int mul_done,sum_done;
 	/**Number of actions when this object was first initialized.*/
 	protected int mSize, sSize;
-
+	private Vector<node> available_tasks;
 
 	public Task(int mul){
 		sum_result = 0;
@@ -30,9 +30,9 @@ abstract public class Task {
 		sum_done = sum_todo = sum;
 		sSize = sum;
 	}
-
+	
 	//_________________________
-	private Vector<node> available_tasks;
+	
 	protected class node{
 		private int mulIndex;
 		private int sumIndex;
@@ -49,8 +49,14 @@ abstract public class Task {
 		public int getSumIndex() {
 			return sumIndex;
 		}
+	}
+	
+	public int getmSize() {
+		return mSize;
+	}
 
-		
+	public int getsSize() {
+		return sSize;
 	}
 
 	/**Synchronized*/
@@ -93,9 +99,9 @@ abstract public class Task {
 	public int get_n(){
 		return n;
 	}
-	 */
+	 
 
-	/*public synchronized void decrease_todoMul(int mul){//probably not needed - only the poolmanager thread interacts with it
+	public synchronized void decrease_todoMul(int mul){//probably not needed - only the poolmanager thread interacts with it
 		mulIndex += mul;
 		mul_todo -= mul;
 	}

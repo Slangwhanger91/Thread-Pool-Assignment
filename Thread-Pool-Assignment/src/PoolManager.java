@@ -16,8 +16,9 @@ public class PoolManager extends Thread{
 	/**amount of tasks each thread is allowed to perform*/
 	private int s, m, t;
 	private boolean stop_and_exit;
-
-	PoolManager(int p, int s, int m, int t){
+	private Results results;
+	PoolManager(int p, int s, int m, int t,Results _results){
+		results = _results;
 		avaliableTasks = new Vector<PoolThread>();
 //		pm_lock = new Object();
 //		NoTasks = true;
@@ -50,11 +51,20 @@ public class PoolManager extends Thread{
 
 //	public void wakeUp(){pm_lock.notify();}
 
-	private void wakeUpFeeder(){this.notifyAll();}
+	private void wakeUpFeeder(){
+	synchronized (this) {
+		this.notifyAll();
+	}
+		
+	}
 
+	public void stopManager(){
+		
+	}
+	
 	public void run(){
 		while(!stop_and_exit){
-
+			wakeUpFeeder();
 			//PoolManager sleeps while there's nothing to do
 			while(!task_Q.isEmpty()){
 				while(!task_Q.peek().isDone()){
@@ -72,7 +82,7 @@ public class PoolManager extends Thread{
 					*/
 				}
 				task_Q.poll();
-				wakeUpFeeder();
+				
 			}
 			//try {pm_lock.wait();}catch (InterruptedException e) {e.printStackTrace();}
 			//Done sleeping, a thread unlocked or Feeder refilled
@@ -86,25 +96,29 @@ public class PoolManager extends Thread{
 	/**Must only be known to PoolManager and have no interaction with any other class.*/
 	class PoolThread extends Thread{
 		private Task task;
-		private Object lock;
+		private Object lock = new Object();
 		
 		public PoolThread(){
 			task = null;
-			lock = new Object();
+			//lock = new Object();
 		}
 
 		/**Gives this thread a task to perform TODO times*/
 		public void set_task(Task T) {
 			task = T;
 			task.decrease_operation_count(m, s);
-			lock.notify();
+			synchronized (lock) {
+				lock.notify();	
+			}
 		}
 
 		public void run(){
 			while(true){
 				if(task!=null){
 					task.calculate(m, s);
-					task.isOperationEnded();
+					if(task.isOperationEnded()){
+						results.report(task);
+					}
 				}
 				//wakeUp();
 				avaliableTasks.addElement(this);
