@@ -29,7 +29,7 @@ public class User {
 		}
 		if(m_values_2!=null && l_values_2!=null){
 			for (int i = 0; i < m_values_2.length; i++) {
-				tasks.add(new T_2(l_values_2[i],m_values_2[i]));
+				tasks.add(new T_2(l_values_2[i], m_values_2[i]));
 			}
 		}
 		Results res = new Results(k, r);
@@ -40,11 +40,23 @@ public class User {
 
 	public static void main(String[] args) {
 		
-		int k=2;
-		int[] n_values_1 = {60,70};
-		int t=1;
-		int s=5;int m=6;
-		solution(k, 0, n_values_1, null, null, t, s, m);
+		
+		int[] n_values_1 = {};//{88,14,365,39,700,17,585,61,94,6};
+		int[] l_values_2 = {5,8,15};//{61,333,24,16,682,11,24,5,476,71};
+		int[] m_values_2 = {9,20,30};//{17,454,8,565,20,27,6,15,657,30};
+		int k = n_values_1.length; int r = l_values_2.length;
+		
+		int t = 4;
+		int s = 5; int m = 6;
+		
+		solution(k, r, n_values_1, l_values_2, m_values_2, t, s, m);
+		
+		/*for (int i = 0; i < 10; i++) {
+			System.out.print((int)(Math.random()*100)+",");
+		}*/
+		
+		//T_2 t2 = new T_2(m, s);
+		//solution(k, 0, n_values_1, null, null, t, s, m);
 		
 		
 
