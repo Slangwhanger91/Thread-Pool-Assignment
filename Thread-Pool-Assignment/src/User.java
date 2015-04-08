@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+
 
 public class User {
 	
@@ -15,8 +19,17 @@ public class User {
 			int t, //PoolManager
 			int s, int m)//PoolThreads
 	{
-		PoolManager PM = new PoolManager(Runtime.getRuntime().availableProcessors(), s, m, t);
-		Feeder F = new Feeder(PM, n_values_1, l_values_2, m_values_2);
+		ArrayList<Task> tasks= new ArrayList<Task>();
+		for (int i = 0; i < n_values_1.length; i++) {
+			tasks.add(new T_1(n_values_1[i]));
+		}
+		
+		for (int i = 0; i < m_values_2.length; i++) {
+			tasks.add(new T_2(l_values_2[i],m_values_2[i]));
+		}
+		
+		PoolManager PM = new PoolManager(Runtime.getRuntime().availableProcessors()*10, s, m, t);
+		Feeder F = new Feeder(PM,tasks);
 	}
 
 	public static void main(String[] args) {
@@ -61,15 +74,15 @@ public class User {
 		}
 		System.out.println("t1 results: " + t1.report());
 		*/
-		calcMul1(1000);
+		//calcMul1(1000);
 		
 		 m_perThread = 31;
-		int s_perThread = 24;
-		int MUL = 100;
-		int SUM = Integer.MAX_VALUE;
-		calcMul2(MUL);
-		calcSum1(0, SUM);
-		/*
+		int s_perThread = 26;
+		int MUL = 10;
+		int SUM = 10;
+		//calcMul2(MUL);
+		calcSum1(MUL, SUM);
+		
 		T_2 t2 = new T_2(MUL, SUM);
 		MyT2 mt2_1 = new MyT2(t2, m_perThread, s_perThread);
 		MyT2 mt2_2 = new MyT2(t2, m_perThread, s_perThread);
@@ -97,8 +110,8 @@ public class User {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		System.out.println(t2.report());
-		*/
+		System.out.println("T_2 : "+t2.report());
+		
 		//calcMul1(N);
 		//calcMul2(N);
 		
@@ -165,7 +178,6 @@ class MyT extends Thread{
 	@Override
 	public void run() {
 		//t1.decrease_todoMul(s);
-		
 		t1.calculate(s, 0);
 	}
 }

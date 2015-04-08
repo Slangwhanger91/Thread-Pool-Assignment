@@ -7,6 +7,7 @@ abstract public class Task {
 	protected int mulIndex, sumIndex;
 	/**Actions allowed to do, when either 'n' or 'm' reaches 0 this thread must stop*/
 	protected int mul_todo, sum_todo;
+	protected int mul_done,sum_done;
 	/**Number of actions when this object was first initialized.*/
 	protected int mSize, sSize;
 
@@ -16,7 +17,7 @@ abstract public class Task {
 		mul_result = 1;
 		mulIndex = 1;
 		sumIndex = 1;
-		this.mul_todo = mul; mSize = mul;
+		mul_done = mul_todo = mul; mSize = mul;
 		available_tasks = new Vector<node>();
 	}
 
@@ -26,7 +27,7 @@ abstract public class Task {
 	 */
 	public Task(int mul, int sum){
 		this(mul);
-		sum_todo = sum;
+		sum_done = sum_todo = sum;
 		sSize = sum;
 	}
 
@@ -85,7 +86,9 @@ abstract public class Task {
 	public boolean isDone(){//be mroe creative..
 		return mul_todo <= 0 && sum_todo <= 0;
 	}
-
+	public synchronized boolean isOperationEnded(){
+		return mul_done <= 0 && sum_done <= 0;
+	}
 	/*
 	public int get_n(){
 		return n;
@@ -111,6 +114,11 @@ abstract public class Task {
 
 		available_tasks.add(new node(mulIndex, sumIndex));
 	}
+	
+	protected synchronized void decrease_done_count(int mul, int sum){
+		mul_done -= mul;
+		sum_done -= sum;
+	}
 
 	abstract public void calculate(int mul, int sum);
 }
@@ -135,7 +143,10 @@ class T_1 extends Task{
 			if(i % 2 == 0) temp_mul = temp_mul * temp;
 			else temp_mul = temp_mul * (-1.0) * temp;
 		}
-		if(performed) fillMulResult(temp_mul);
+		if(performed) {
+			fillMulResult(temp_mul);
+			decrease_done_count(mul, sum);
+		}
 	}
 
 }
@@ -147,7 +158,7 @@ class T_2 extends Task{
 		super(mul, sum);
 	}
 
-	private void calculateSum(int sum, int sumIndex) {
+	private void calculateSum(int sum, int sumIndex,int mul) {
 		boolean performed = false;
 		double temp_sum = 0;
 		int i = sumIndex - sum;
@@ -156,7 +167,10 @@ class T_2 extends Task{
 			double temp = (i / (2.0 * i * i + 1));
 			temp_sum += temp;
 		}
-		if(performed) fillSumResult(temp_sum);
+		if(performed) {
+			fillSumResult(temp_sum);
+			decrease_done_count(mul, sumIndex);
+		}
 	}
 
 	public void calculate(int mul, int sum){
@@ -172,9 +186,10 @@ class T_2 extends Task{
 			else temp_mul = temp_mul * (-1) * temp;
 
 		}
-		if(performed) fillMulResult(temp_mul);
-		//}
-		calculateSum(sum, taskInfo.getSumIndex());
+		if(performed) {
+			fillMulResult(temp_mul);
+			calculateSum(sum, taskInfo.getSumIndex(),mul);
+		}
 	}
 }
 
