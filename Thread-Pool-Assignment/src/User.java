@@ -33,8 +33,9 @@ public class User {
 			}
 		}
 		Results res = new Results(k, r);
-		PoolManager PM = new PoolManager(Runtime.getRuntime().availableProcessors(), s, m, t,res);
-		Feeder F = new Feeder(PM,tasks);
+		PoolManager pm = new PoolManager(Runtime.getRuntime().availableProcessors(), s, m, t,res);
+		Feeder F = new Feeder(pm,tasks);
+		pm.terminate();
 	}
 
 	public static void main(String[] args) {

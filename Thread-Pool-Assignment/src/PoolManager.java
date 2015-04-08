@@ -41,11 +41,17 @@ public class PoolManager extends Thread{
 		stop_and_exit = false;
 		//pool of threads
 		threadsArr = new PoolThread[p];
+		/*
 		int i=0;
 		for (PoolThread PT : threadsArr){
 			PT = new PoolThread(i);
 			PT.start();
 			i++;
+		}
+		*/
+		for (int j = 0; j < threadsArr.length; j++) {
+			threadsArr[j]=new PoolThread(j);
+			threadsArr[j].start();
 		}
 		//limitations for each thread
 		this.s = s; this.m = m;
@@ -62,7 +68,10 @@ public class PoolManager extends Thread{
 	private void terminateThreads(){
 		threadsStop = true;
 		for (int i = 0; i < threadsArr.length; i++) {
-			threadsArr[i].lock.notify();
+			synchronized (threadsArr[i].lock) {
+				threadsArr[i].lock.notify();
+			}
+			
 		}
 	}
 
@@ -109,12 +118,12 @@ public class PoolManager extends Thread{
 	/**Must only be known to PoolManager and have no interaction with any other class.*/
 	class PoolThread extends Thread{
 		private Task task;
-		private Object lock = new Object();
+		private Object lock;// = new Object();
 
 		public PoolThread(int i){
 			super("PoolThread "+i);
 			task = null;
-			//lock = new Object();
+			lock = new Object();
 		}
 
 		/**Gives this thread a task to perform TODO times*/
@@ -127,7 +136,9 @@ public class PoolManager extends Thread{
 		}
 
 		public void run(){
+			
 			while(!threadsStop){
+				avaliableThreads.addElement(this);
 				synchronized(lock){
 					try {lock.wait();} catch (InterruptedException e) {e.printStackTrace();}
 				}
@@ -139,8 +150,6 @@ public class PoolManager extends Thread{
 				}
 				task = null;
 				//wakeUp();
-				avaliableThreads.addElement(this);
-				
 				
 			}
 		}
