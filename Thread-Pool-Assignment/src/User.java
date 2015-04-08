@@ -32,14 +32,14 @@ public class User {
 				tasks.add(new T_2(l_values_2[i], m_values_2[i]));
 			}
 		}
-		Results res = new Results(k, r);
+		Results res = new Results(n_values_1.length, m_values_2.length);
 		PoolManager pm = new PoolManager(Runtime.getRuntime().availableProcessors(), s, m, t,res);
 		Feeder F = new Feeder(pm,tasks);
 		pm.terminate();
 	}
 
 	public static void main(String[] args) {
-
+		
 
 		int[] n_values_1 = {};//{88,14,365,39,700,17,585,61,94,6};
 		int[] l_values_2 = {5};//{5,8,15};//{61,333,24,16,682,11,24,5,476,71}; mul

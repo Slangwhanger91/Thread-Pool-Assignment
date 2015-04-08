@@ -11,8 +11,10 @@ abstract public class Task {
 	/**Number of actions when this object was first initialized.*/
 	protected int mSize, sSize;
 	private Vector<node> available_tasks;
+	private boolean reportPerformed;
 
 	public Task(int mul){
+		reportPerformed = false;
 		sum_result = 0;
 		mul_result = 1;
 		mulIndex = 1;
@@ -85,7 +87,8 @@ abstract public class Task {
 	 * Report final result
 	 * @return
 	 */
-	public double report(){
+	public synchronized double report(){
+		reportPerformed = true;
 		return sum_result + mul_result;
 	}
 
@@ -95,22 +98,6 @@ abstract public class Task {
 	public synchronized boolean isOperationEnded(){
 		return mul_done <= 0 && sum_done <= 0;
 	}
-	/*
-	public int get_n(){
-		return n;
-	}
-	 
-
-	public synchronized void decrease_todoMul(int mul){//probably not needed - only the poolmanager thread interacts with it
-		mulIndex += mul;
-		mul_todo -= mul;
-	}
-
-	public synchronized void decrease_todoSum(int sum){//same as the comment above
-		sumIndex += sum;
-		sum_todo -= sum;
-	}*/
-
 	public synchronized void decrease_operation_count(int mul, int sum){//probably not needed - only the poolmanager thread interacts with it
 		mulIndex += mul;
 		mul_todo -= mul;
@@ -124,6 +111,10 @@ abstract public class Task {
 	protected synchronized void decrease_done_count(int mul, int sum){
 		mul_done -= mul;
 		sum_done -= sum;
+	}
+	
+	public boolean reportPerformed(){
+		return reportPerformed;
 	}
 
 	abstract public void calculate(int mul, int sum);
@@ -141,7 +132,6 @@ class T_1 extends Task{
 		node taskInfo = pick_task();
 		boolean performed = false;
 		double temp_mul = 1;
-		//int i = mulIndex - mul;
 		int i = taskInfo.getMulIndex() - mul;
 		for(double temp; i < taskInfo.getMulIndex() && i <= mSize; i++){
 			performed = true;
@@ -168,7 +158,6 @@ class T_2 extends Task{
 		node taskInfo = pick_task();
 		boolean performed = false;
 		double temp_mul = 1;
-		//int i = mulIndex - mul;
 		int i = taskInfo.getMulIndex() - mul;
 		for(;i < taskInfo.getMulIndex() && i <= mSize; i++){
 			performed = true;
@@ -177,10 +166,9 @@ class T_2 extends Task{
 			else temp_mul = temp_mul * (-1) * temp;
 
 		}
-		if(performed) {
-			fillMulResult(temp_mul);
-			calculateSum(sum, taskInfo.getSumIndex(),mul);
-		}
+		if(performed) fillMulResult(temp_mul);
+		calculateSum(sum, taskInfo.getSumIndex(),mul);
+		decrease_done_count(mul, sum);
 	}
 	
 	private void calculateSum(int sum, int sumIndex,int mul) {
@@ -194,8 +182,12 @@ class T_2 extends Task{
 		}
 		if(performed) {
 			fillSumResult(temp_sum);
-			decrease_done_count(mul, sumIndex);
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getName()+" : l="+mSize+", m="+sSize;
 	}
 }
 

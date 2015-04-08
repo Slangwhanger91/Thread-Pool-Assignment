@@ -24,9 +24,5 @@ public class Feeder extends Thread{
 			}
 		}
 		pm.removeFeeder();
-		
-
 	}
-	
-	
 }

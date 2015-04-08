@@ -17,7 +17,8 @@ public class Results extends Thread{
 	}
 	
 	
-	public void report(Task t) {
+	public synchronized void report(Task t) {
+		if(t.reportPerformed())return;
 		if(t instanceof T_1){
 			report_T1.addElement(new ReportT1((T_1)t));
 		}else{

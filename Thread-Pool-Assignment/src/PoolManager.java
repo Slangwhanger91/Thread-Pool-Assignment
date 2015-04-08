@@ -34,30 +34,15 @@ public class PoolManager extends Thread{
 		results = _results;
 		numOfFeeders = new AtomicInteger(0);
 		avaliableThreads = new Vector<PoolThread>();
-		//		pm_lock = new Object();
-		//		NoTasks = true;
 		this.t = t;
-		//		All_Threads_Busy = false;
 		stop_and_exit = false;
-		//pool of threads
 		threadsArr = new PoolThread[p];
-		/*
-		int i=0;
-		for (PoolThread PT : threadsArr){
-			PT = new PoolThread(i);
-			PT.start();
-			i++;
-		}
-		*/
 		for (int j = 0; j < threadsArr.length; j++) {
 			threadsArr[j]=new PoolThread(j);
 			threadsArr[j].start();
 		}
-		//limitations for each thread
 		this.s = s; this.m = m;
-		//empty array of tasks to perform
 		task_Q = new LinkedList<Task>();
-
 		this.start();
 	}
 	
@@ -95,7 +80,6 @@ public class PoolManager extends Thread{
 	public void run(){
 		while(!stop_and_exit || avaliableThreads.size() != threadsArr.length || numOfFeeders.get() > 0){
 			wakeUpFeeders();
-			//PoolManager sleeps while there's nothing to do
 			while(!task_Q.isEmpty()){
 				while(!task_Q.peek().isDone()){
 					if(!avaliableThreads.isEmpty()){
@@ -106,9 +90,7 @@ public class PoolManager extends Thread{
 				task_Q.poll();
 				wakeUpFeeders();
 			}
-			//try {pm_lock.wait();}catch (InterruptedException e) {e.printStackTrace();}
-			//Done sleeping, a thread unlocked or Feeder refilled
-		}//stop_and_wait
+		}
 		terminateThreads();
 		
 	}
@@ -136,7 +118,6 @@ public class PoolManager extends Thread{
 		}
 
 		public void run(){
-			
 			while(!threadsStop){
 				avaliableThreads.addElement(this);
 				synchronized(lock){
@@ -144,13 +125,12 @@ public class PoolManager extends Thread{
 				}
 				if(task!=null){
 					task.calculate(m, s);
+					System.out.println(task.isOperationEnded());
 					if(task.isOperationEnded()){
 						results.report(task);
 					}
 				}
 				task = null;
-				//wakeUp();
-				
 			}
 		}
 
