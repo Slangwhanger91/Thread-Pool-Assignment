@@ -164,21 +164,6 @@ class T_2 extends Task{
 		super(mul, sum);
 	}
 
-	private void calculateSum(int sum, int sumIndex,int mul) {
-		boolean performed = false;
-		double temp_sum = 0;
-		int i = sumIndex - sum;
-		for(; i < sumIndex && i <= sSize; i++){
-			performed = true;
-			double temp = (i / (2.0 * i * i + 1));
-			temp_sum += temp;
-		}
-		if(performed) {
-			fillSumResult(temp_sum);
-			decrease_done_count(mul, sumIndex);
-		}
-	}
-
 	public void calculate(int mul, int sum){
 		node taskInfo = pick_task();
 		boolean performed = false;
@@ -195,6 +180,21 @@ class T_2 extends Task{
 		if(performed) {
 			fillMulResult(temp_mul);
 			calculateSum(sum, taskInfo.getSumIndex(),mul);
+		}
+	}
+	
+	private void calculateSum(int sum, int sumIndex,int mul) {
+		boolean performed = false;
+		double temp_sum = 0;
+		int i = sumIndex - sum;
+		for(; i < sumIndex && i <= sSize; i++){
+			performed = true;
+			double temp = (i / (2.0 * i * i + 1));
+			temp_sum += temp;
+		}
+		if(performed) {
+			fillSumResult(temp_sum);
+			decrease_done_count(mul, sumIndex);
 		}
 	}
 }
