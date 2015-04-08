@@ -6,7 +6,9 @@ public class Feeder extends Thread{
 	ArrayList<Task> allTasks;
 	
 	Feeder(PoolManager pm,ArrayList<Task> _allTasks){
+		super("Feeder");
 		this.pm = pm;
+		pm.addFeeder();
 		allTasks = _allTasks;
 		this.start();
 	}
@@ -21,6 +23,7 @@ public class Feeder extends Thread{
 				} catch (InterruptedException e) {e.printStackTrace();}
 			}
 		}
+		pm.removeFeeder();
 		
 
 	}

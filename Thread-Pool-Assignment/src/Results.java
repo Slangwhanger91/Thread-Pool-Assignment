@@ -4,9 +4,11 @@ public class Results extends Thread{
 	
 	private Vector<ReportT1> report_T1;
 	private Vector<ReportT2> report_T2;
-	int t1_size, t2_size;
+	private int t1_size, t2_size;
+	
 	
 	public Results(int _t1_size,int _t2_size){
+		super("Results");
 		t1_size = _t1_size;
 		t2_size = _t2_size;
 		report_T1 = new Vector<ReportT1>();

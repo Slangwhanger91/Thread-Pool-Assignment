@@ -1,35 +1,51 @@
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 
 
 public class PoolManager extends Thread{
 	private PoolThread[] threadsArr;//p threads to work with
-	private Vector<PoolThread> avaliableTasks;
+	private Vector<PoolThread> avaliableThreads;
 	//private Task PM_Tasks[];//t tasks to do
 	private Queue<Task> task_Q;
-//	private boolean All_Threads_Busy;
-//	private boolean NoTasks;
-//	private Object pm_lock;
+	//	private boolean All_Threads_Busy;
+	//	private boolean NoTasks;
+	//	private Object pm_lock;
 	/**amount of tasks each thread is allowed to perform*/
 	private int s, m, t;
 	private boolean stop_and_exit;
 	private Results results;
+	private AtomicInteger numOfFeeders;
+	private boolean threadsStop;
+	public void addFeeder(){
+		numOfFeeders.incrementAndGet();
+	}
+	
+	public void removeFeeder(){
+		numOfFeeders.decrementAndGet();
+	}
+	
 	PoolManager(int p, int s, int m, int t,Results _results){
+		super("PoolManager");
+		threadsStop = false;
 		results = _results;
-		avaliableTasks = new Vector<PoolThread>();
-//		pm_lock = new Object();
-//		NoTasks = true;
+		numOfFeeders = new AtomicInteger(0);
+		avaliableThreads = new Vector<PoolThread>();
+		//		pm_lock = new Object();
+		//		NoTasks = true;
 		this.t = t;
-//		All_Threads_Busy = false;
+		//		All_Threads_Busy = false;
 		stop_and_exit = false;
 		//pool of threads
 		threadsArr = new PoolThread[p];
+		int i=0;
 		for (PoolThread PT : threadsArr){
-			PT = new PoolThread();
+			PT = new PoolThread(i);
 			PT.start();
+			i++;
 		}
 		//limitations for each thread
 		this.s = s; this.m = m;
@@ -42,6 +58,13 @@ public class PoolManager extends Thread{
 	public void terminate(){
 		stop_and_exit = true;
 	}
+	
+	private void terminateThreads(){
+		threadsStop = true;
+		for (int i = 0; i < threadsArr.length; i++) {
+			threadsArr[i].lock.notify();
+		}
+	}
 
 	/**for the use of the Feeder class, added synchronized if multiple Feeder want to use this PoolManager*/
 	public synchronized boolean addTask(Task T){
@@ -49,56 +72,47 @@ public class PoolManager extends Thread{
 		task_Q.add(T); return true;
 	}
 
-//	public void wakeUp(){pm_lock.notify();}
+	//	public void wakeUp(){pm_lock.notify();}
 
-	private void wakeUpFeeder(){
-	synchronized (this) {
-		this.notifyAll();
-	}
-		
-	}
+	private void wakeUpFeeders(){
+		synchronized (this) {
+			this.notifyAll();
+		}
 
-	public void stopManager(){
-		
 	}
 	
+	
+	
 	public void run(){
-		while(!stop_and_exit){
-			wakeUpFeeder();
+		while(!stop_and_exit || avaliableThreads.size() != threadsArr.length || numOfFeeders.get() > 0){
+			wakeUpFeeders();
 			//PoolManager sleeps while there's nothing to do
 			while(!task_Q.isEmpty()){
 				while(!task_Q.peek().isDone()){
-					if(!avaliableTasks.isEmpty()){
-						PoolThread pt = avaliableTasks.remove(0);
+					if(!avaliableThreads.isEmpty()){
+						PoolThread pt = avaliableThreads.remove(0);
 						pt.set_task(task_Q.peek());
 					}
-					/*
-					for (PoolThread pt : threadsArr) {
-						if(pt.getState().equals(Thread.State.WAITING)){
-							pt.set_task(task_Q.peek());
-							break;
-						}
-					}
-					*/
 				}
 				task_Q.poll();
-				
+				wakeUpFeeders();
 			}
 			//try {pm_lock.wait();}catch (InterruptedException e) {e.printStackTrace();}
 			//Done sleeping, a thread unlocked or Feeder refilled
 		}//stop_and_wait
+		terminateThreads();
+		
 	}
 	/**Stops the PoolManager from working and exit.*/
-	public void stop_and_exit(){
-		stop_and_exit = true;
-	}
 	
+
 	/**Must only be known to PoolManager and have no interaction with any other class.*/
 	class PoolThread extends Thread{
 		private Task task;
 		private Object lock = new Object();
-		
-		public PoolThread(){
+
+		public PoolThread(int i){
+			super("PoolThread "+i);
 			task = null;
 			//lock = new Object();
 		}
@@ -113,18 +127,21 @@ public class PoolManager extends Thread{
 		}
 
 		public void run(){
-			while(true){
+			while(!threadsStop){
+				synchronized(lock){
+					try {lock.wait();} catch (InterruptedException e) {e.printStackTrace();}
+				}
 				if(task!=null){
 					task.calculate(m, s);
 					if(task.isOperationEnded()){
 						results.report(task);
 					}
 				}
+				task = null;
 				//wakeUp();
-				avaliableTasks.addElement(this);
-				synchronized(lock){
-					try {lock.wait();} catch (InterruptedException e) {e.printStackTrace();}
-				}
+				avaliableThreads.addElement(this);
+				
+				
 			}
 		}
 

@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class User {
@@ -42,6 +44,10 @@ public class User {
 		int t=1;
 		int s=5;int m=6;
 		solution(k, 0, n_values_1, null, null, t, s, m);
+		
+		
+
+		
 		
 	}
 }
