@@ -41,19 +41,19 @@ public class User {
 	public static void main(String[] args) {
 		
 
-		int[] n_values_1 = {};//{88,14,365,39,700,17,585,61,94,6};
-		int[] l_values_2 = {5};//{5,8,15};//{61,333,24,16,682,11,24,5,476,71}; mul
-		int[] m_values_2 = {9};//{9,20,30};//{17,454,8,565,20,27,6,15,657,30}; sum
+		int[] n_values_1 = {88,14,365,39,700,17,585,61,94,6};//{88,14,365,39,700,17,585,61,94,6};
+		int[] l_values_2 = {17,454,8,565,20,27,6,15,657,30};//{5,8,15};//{17,454,8,565,20,27,6,15,657,30}; mul
+		int[] m_values_2 = {17,454,8,565,20,27,6,15,657,30};//{9,20,30};//{17,454,8,565,20,27,6,15,657,30}; sum
 		int k = n_values_1.length; int r = l_values_2.length;
 
 		int t = 4;
 		int s = 5; int m = 6;
 
-		solution(k, r, n_values_1, l_values_2, m_values_2, t, s, m);
+		//solution(k, r, n_values_1, l_values_2, m_values_2, t, s, m);
 
-		/*for (int i = 0; i < 10; i++) {
-			System.out.print((int)(Math.random()*100)+",");
-		}*/
+	//	for (int i = 0; i < 100; i++) {
+			solution(k, r, n_values_1, l_values_2, m_values_2, t, s, m);
+	//	}
 
 		//T_2 t2 = new T_2(m, s);
 		//solution(k, 0, n_values_1, null, null, t, s, m);

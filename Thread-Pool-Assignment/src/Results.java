@@ -16,6 +16,9 @@ public class Results extends Thread{
 		this.start();
 	}
 	
+	public synchronized boolean isConatianAllResults(){
+		return report_T1.size()+report_T2.size() == t1_size+t2_size;
+	}
 	
 	public synchronized void report(Task t) {
 		if(t.reportPerformed())return;
@@ -24,24 +27,27 @@ public class Results extends Thread{
 		}else{
 			report_T2.addElement(new ReportT2((T_2)t));
 		}
-	//this.notify();
 	}
 	
 	@Override
 	public void run() {
-		System.out.println("print all expressions of type (1.1) first)");
-		while(t1_size > 0){
-			while(!report_T1.isEmpty()){
-				t1_size--;
-				System.out.println(report_T1.remove(0));
+		if(!isConatianAllResults()){
+			synchronized (this) {
+				try {
+					this.wait();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
+		System.out.println("print all expressions of type (1.1) first");
+		while(!report_T1.isEmpty()){
+			System.out.println(report_T1.remove(0));
+		}
 		System.out.println("print all expressions of type (1.2) second");
-		while(t2_size > 0){
-			while(!report_T2.isEmpty()){
-				System.out.println(report_T2.remove(0));
-				t2_size--;
-			}
+		while(!report_T2.isEmpty()){
+			System.out.println(report_T2.remove(0));
 		}
 	}
 	

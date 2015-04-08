@@ -10,7 +10,7 @@ abstract public class Task {
 	protected int mul_done,sum_done;
 	/**Number of actions when this object was first initialized.*/
 	protected int mSize, sSize;
-	private Vector<node> available_tasks;
+	protected Vector<node> available_tasks;
 	private boolean reportPerformed;
 
 	public Task(int mul){
@@ -98,7 +98,7 @@ abstract public class Task {
 	public synchronized boolean isOperationEnded(){
 		return mul_done <= 0 && sum_done <= 0;
 	}
-	public synchronized void decrease_operation_count(int mul, int sum){//probably not needed - only the poolmanager thread interacts with it
+	public void decrease_operation_count(int mul, int sum){//probably not needed - only the poolmanager thread interacts with it
 		mulIndex += mul;
 		mul_todo -= mul;
 

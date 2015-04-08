@@ -9,30 +9,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PoolManager extends Thread{
 	private PoolThread[] threadsArr;//p threads to work with
 	private Vector<PoolThread> avaliableThreads;
-	//private Task PM_Tasks[];//t tasks to do
 	private Queue<Task> task_Q;
-	//	private boolean All_Threads_Busy;
-	//	private boolean NoTasks;
-	//	private Object pm_lock;
 	/**amount of tasks each thread is allowed to perform*/
 	private int s, m, t;
 	private boolean stop_and_exit;
 	private Results results;
-	private AtomicInteger numOfFeeders;
 	private boolean threadsStop;
-	public void addFeeder(){
-		numOfFeeders.incrementAndGet();
-	}
-	
-	public void removeFeeder(){
-		numOfFeeders.decrementAndGet();
-	}
+
 	
 	PoolManager(int p, int s, int m, int t,Results _results){
 		super("PoolManager");
 		threadsStop = false;
 		results = _results;
-		numOfFeeders = new AtomicInteger(0);
 		avaliableThreads = new Vector<PoolThread>();
 		this.t = t;
 		stop_and_exit = false;
@@ -66,8 +54,6 @@ public class PoolManager extends Thread{
 		task_Q.add(T); return true;
 	}
 
-	//	public void wakeUp(){pm_lock.notify();}
-
 	private void wakeUpFeeders(){
 		synchronized (this) {
 			this.notifyAll();
@@ -78,7 +64,7 @@ public class PoolManager extends Thread{
 	
 	
 	public void run(){
-		while(!stop_and_exit || avaliableThreads.size() != threadsArr.length || numOfFeeders.get() > 0){
+		while(!stop_and_exit || !results.isConatianAllResults()){
 			wakeUpFeeders();
 			while(!task_Q.isEmpty()){
 				while(!task_Q.peek().isDone()){
@@ -90,6 +76,9 @@ public class PoolManager extends Thread{
 				task_Q.poll();
 				wakeUpFeeders();
 			}
+		}
+		synchronized (results) {
+			results.notify();
 		}
 		terminateThreads();
 		
@@ -109,8 +98,8 @@ public class PoolManager extends Thread{
 		}
 
 		/**Gives this thread a task to perform TODO times*/
-		public void set_task(Task T) {
-			task = T;
+		public void set_task(Task t) {
+			task = t;
 			task.decrease_operation_count(m, s);
 			synchronized (lock) {
 				lock.notify();	
@@ -125,7 +114,6 @@ public class PoolManager extends Thread{
 				}
 				if(task!=null){
 					task.calculate(m, s);
-					System.out.println(task.isOperationEnded());
 					if(task.isOperationEnded()){
 						results.report(task);
 					}
