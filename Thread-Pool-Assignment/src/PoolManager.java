@@ -60,7 +60,7 @@ public class PoolManager extends Thread{
 	}
 	
 	public void run(){
-		while(!stop_and_exit){
+		while(!results.resultsIsFull()){
 			wakeUpFeeders();
 			while(!task_Q.isEmpty()){
 				while(!task_Q.peek().isDoneDividing()){
@@ -114,7 +114,8 @@ public class PoolManager extends Thread{
 					}
 				}
 				if(task!=null){
-					results.report(task,task.calculate(m, s));
+					PartialResult p = task.calculate(m, s);
+					results.report(task,p);
 				}
 				task = null;
 			}

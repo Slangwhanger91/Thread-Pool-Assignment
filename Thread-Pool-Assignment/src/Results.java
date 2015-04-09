@@ -47,7 +47,7 @@ public class Results extends Thread{
 		if(t instanceof T_1){
 			addT1(p, t);
 		}else{
-			
+			addT2(p, t);
 		}
 	}
 
@@ -61,7 +61,7 @@ public class Results extends Thread{
 
 		synchronized (this) {
 			try {
-				this.wait(5000);
+				this.wait();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -85,10 +85,9 @@ public class Results extends Thread{
 	private class ReportT1{
 		PartialResult result;
 		int mSize,index;;
-		ReportT1(){result = new PartialResult();}
 		
 		private ReportT1(PartialResult p,int _mSize,int _index){
-			result=new PartialResult();
+			result=new PartialResult(p);
 			mSize = _mSize;
 			index=_index;
 		}
@@ -111,10 +110,9 @@ public class Results extends Thread{
 		
 		PartialResult result;
 		int mSize,sSize,index;
-	//	ReportT2(){result = new PartialResult();}
 		
 		private ReportT2(PartialResult p,int _mSize,int _sSize,int _index){
-			result=new PartialResult();
+			result=new PartialResult(p);
 			mSize = _mSize;
 			sSize = _sSize;
 			index=_index;
@@ -136,9 +134,10 @@ public class Results extends Thread{
 
 class PartialResult{
 	private double mul, sum;
-
-	PartialResult(){
-		mul=sum=0;
+	
+	PartialResult(PartialResult p){
+		this.mul = p.mul;
+		this.sum = p.sum;
 	}
 	
 	PartialResult(double mul, double sum){

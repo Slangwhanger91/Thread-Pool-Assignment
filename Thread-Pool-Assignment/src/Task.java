@@ -119,7 +119,8 @@ class T_1 extends Task{
 			else temp_mul = temp_mul * (-1.0) * temp;
 		}
 		decreaseDoneCount(mul, sum);
-		return new PartialResult(temp_mul, 0);
+		PartialResult p = new PartialResult(temp_mul, 0);
+		return p;
 		 
 	}
 
