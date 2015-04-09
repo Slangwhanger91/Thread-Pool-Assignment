@@ -12,7 +12,7 @@ public class User {
 	 * @param s - the number of summands each <b>PoolThread</b> is allowed to execute.
 	 * @param m - the number of multiplicands each <b>PoolThread</b> is allowed to execute.
 	 */
-	public static void solution(int k, int r, int[] n_values_1, int[] l_values_2, int[] m_values_2, //Feeder
+	public static PoolManager solution(int k, int r, int[] n_values_1, int[] l_values_2, int[] m_values_2, //Feeder
 			int t, //PoolManager
 			int s, int m)//PoolThreads
 	{
@@ -32,32 +32,48 @@ public class User {
 		Feeder F = new Feeder(pm,tasks);
 		
 		
+		return pm;
+		
 	}
 
 	public static void main(String[] args) {
 
 
-		int[] n_values_1 = {88,14,365,39,700,17,585,61,94,6};//{88,14,365,39,700,17,585,61,94,6};
-		int[] l_values_2 = {61,334,24,16,682,11,24,5,476,71};//{5,8,15};//{17,454,8,565,20,27,6,15,657,30}; mul
-		int[] m_values_2 = {17,454,8,565,20,27,6,15,657,30};//{9,20,30};//{17,454,8,565,20,27,6,15,657,30}; sum
-		int k = n_values_1.length; int r = l_values_2.length;
+		int[] n1 = {88,14,365,39,700,17,585,61,94,6};//{88,14,365,39,700,17,585,61,94,6};
+		int[] l2 = {61,334,24,16,682,11,24,5,476,71};//{5,8,15};//{61,334,24,16,682,11,24,5,476,71}; mul
+		int[] m2 = {17,454,8,565,20,27,6,15,657,30};//{9,20,30};//{17,454,8,565,20,27,6,15,657,30}; sum
+		int k = n1.length; int r = l2.length;
 
 		int t = 4;
 		int s = 5; int m = 6;
-		solution(k, r, n_values_1, l_values_2, m_values_2, t, s, m);
+		try {
+			solution(k, r, n1, l2, m2, t, s, m).join();
+		//	Thread.sleep(2000);
+		} catch (InterruptedException e){
+			e.printStackTrace();
+		}
+		//Print test results for expression 1.1
+		for (int i = 0; i < n1.length; i++) {
+			System.out.println(""+n1[i]+" : "+calcMul1(n1[i]));
+		}
+		//Print test results for expression 1.2
+		for (int i = 0; i < l2.length; i++) {
+			System.out.println("l:"+l2[i]+",m:"+m2[i]+": "+calcSum1(l2[i],m2[i]));
+		}
+		
 		
 
 		
 }
 
-public static void calcMul1(int mul){
+public static double calcMul1(int mul){
 	double ans = 1;
 	for (int i = 1; i <= mul; i++) {
 		if(i%2 == 0) ans *= (1 / (2.0 * i + 1));
 		else ans *= ((-1) / (2.0 * i + 1));
 	}
-
-	System.out.println("Mul1: " + ans);
+	return ans;
+	//System.out.println("Mul1: " + ans);
 }
 
 public static double calcMul2(int mul){
@@ -72,18 +88,14 @@ public static double calcMul2(int mul){
 	return temp_mul;
 }
 
-public static void calcSum1(int mul, int sum){
+public static double calcSum1(int mul, int sum){
 	double temp_sum = 0;
 	int i = 1;
 	for(;i <= sum; i++){
 		double temp = (i / ((2.0 * i * i) + 1));
-	//	System.out.println(i+" : "+temp);
 		temp_sum += temp;
 	}
-
-	System.out.println("mul2: " + (temp_sum + calcMul2(mul)));
-	//System.out.println("sum + mul: " + (temp_sum + calcMul2(mul)));
-//	System.out.println("sum + mul: " + (0==(temp_sum + calcMul2(mul))));
+	return temp_sum + calcMul2(mul);
 }
 
 
