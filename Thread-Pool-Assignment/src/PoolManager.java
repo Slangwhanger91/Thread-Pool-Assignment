@@ -115,22 +115,22 @@ public class PoolManager extends Thread{
 				}
 				if(task!=null){
 					task.calculate(m, s);
-					if(task.isOperationEnded()){
+					/*if(task.isOperationEnded()){
 						//synchronized (results) {
 							results.report(task);
 						//}
 						
-					}
+					}*/
 				}
 				task = null;
 			}
 		}
 
-		@SuppressWarnings("serial")
+		/*@SuppressWarnings("serial")
 		class PoolThreadException extends Exception{
 			public PoolThreadException (){
 				super("Method NULL Pointer Exception.");
 			}
-		}
+		}*/
 	}
 } 

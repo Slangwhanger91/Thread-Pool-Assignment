@@ -1,9 +1,7 @@
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 abstract public class Task {
-	private double mul_result,sum_result;
 	protected int mulIndex, sumIndex;
 	/**Actions allowed to do, when either 'n' or 'm' reaches 0 this thread must stop*/
 	protected int mul_todo, sum_todo;
@@ -12,10 +10,16 @@ abstract public class Task {
 	protected int mSize, sSize;
 	protected Vector<node> ranges;
 	protected boolean reportPerformed;
-	public Task(int mul){
+	
+	private int index;
+	
+	public int getIndex(){
+		return index;
+	}
+	
+	public Task(int mul, int index){
 		reportPerformed = false;
-		sum_result = 0;
-		mul_result = 1;
+		this.index = index;
 		mulIndex = 1;
 		sumIndex = 1;
 		mul_done = mul_todo = mul; mSize = mul;
@@ -26,8 +30,8 @@ abstract public class Task {
 	 * @param mul - multiplication operations to do.
 	 * @param sum - summand operations to do.
 	 */
-	public Task(int mul, int sum){
-		this(mul);
+	public Task(int mul, int sum, int index){
+		this(mul, index);
 		sum_done = sum_todo = sum;
 		sSize = sum;
 	}
@@ -68,30 +72,6 @@ abstract public class Task {
 		return ranges.remove(0);
 	}
 	//_________________________
-	
-	/**
-	 * Adding the partial sum result
-	 * @param sum
-	 */
-	public synchronized void fillSumResult(double sum){
-		sum_result += sum;
-	}
-
-	/**
-	 * multiplies the partial mul result
-	 * @param mul
-	 */
-	public synchronized void fillMulResult(double mul){
-		mul_result *= mul;
-	}
-
-	/**
-	 * Report final result
-	 * @return
-	 */
-	public double getResults(){
-		return sum_result + mul_result;
-	}
 
 	public boolean isDoneDividing(){
 		return mul_todo < 0 && sum_todo < 0;
@@ -115,7 +95,7 @@ abstract public class Task {
 	//	if(isOperationEnded())setReportPerformed();
 	}
 
-	abstract public void calculate(int mul, int sum);
+	abstract public PartialResult calculate(int mul, int sum);
 	
 	
 	
@@ -124,12 +104,12 @@ abstract public class Task {
 /**1.1*/
 class T_1 extends Task{
 
-	public T_1(int mul){
-		super(mul);
+	public T_1(int mul, int index){
+		super(mul, index);
 	}
 
 	@Override
-	public void calculate(int mul, int sum) {
+	public PartialResult calculate(int mul, int sum) {
 		node taskInfo = pickRange();
 		double temp_mul = 1;
 		int i = taskInfo.getMulIndex() - mul;
@@ -138,9 +118,8 @@ class T_1 extends Task{
 			if(i % 2 == 0) temp_mul = temp_mul * temp;
 			else temp_mul = temp_mul * (-1.0) * temp;
 		}
-		fillMulResult(temp_mul);
 		decreaseDoneCount(mul, sum);
-		
+		return new PartialResult(temp_mul, 0, getIndex());
 		 
 	}
 
@@ -149,38 +128,35 @@ class T_1 extends Task{
 /**1.2*/
 class T_2 extends Task{
 
-	public T_2(int mul, int sum){
-		super(mul, sum);
+	public T_2(int mul, int sum, int index){
+		super(mul, sum, index);
 	}
 
-	public void calculate(int mul, int sum){
+	public PartialResult calculate(int mul, int sum){
 		node taskInfo = pickRange();
-		boolean performed = false;
 		double temp_mul = 1;
 		int i = taskInfo.getMulIndex() - mul;
 		for(;i < taskInfo.getMulIndex() && i <= mSize; i++){
-			performed = true;
 			double temp = (1.0 / (2.0 * i + 3));
 			if(i % 2 == 0) temp_mul = temp_mul * temp;
 			else temp_mul = temp_mul * (-1) * temp;
 
 		}
-		if(performed) fillMulResult(temp_mul);
-		calculateSum(sum, taskInfo.getSumIndex(),mul);
+		
+		
 		decreaseDoneCount(mul, sum);
+		return new PartialResult(temp_mul, calculateSum(sum, taskInfo.getSumIndex()), getIndex());
 	}
 	
-	private void calculateSum(int sum, int sumIndex,int mul) {
+	private double calculateSum(int sum, int sumIndex) {
 	//	z.incrementAndGet();
-		boolean performed = false;
 		double temp_sum = 0;
 		int i = sumIndex - sum;
 		for(; i < sumIndex && i <= sSize; i++){
-			performed = true;
 			double temp = (i / (2.0 * i * i + 1));
 			temp_sum += temp;
 		}
-		if(performed) fillSumResult(temp_sum);
+		return temp_sum;
 	}
 	
 	@Override
