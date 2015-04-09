@@ -119,7 +119,7 @@ class T_1 extends Task{
 			else temp_mul = temp_mul * (-1.0) * temp;
 		}
 		decreaseDoneCount(mul, sum);
-		return new PartialResult(temp_mul, 0, getIndex());
+		return new PartialResult(temp_mul, 0);
 		 
 	}
 
@@ -142,14 +142,12 @@ class T_2 extends Task{
 			else temp_mul = temp_mul * (-1) * temp;
 
 		}
-		
-		
+		double temp_sum = calculateSum(sum, taskInfo.getSumIndex());
 		decreaseDoneCount(mul, sum);
-		return new PartialResult(temp_mul, calculateSum(sum, taskInfo.getSumIndex()), getIndex());
+		return new PartialResult(temp_mul, temp_sum);
 	}
 	
 	private double calculateSum(int sum, int sumIndex) {
-	//	z.incrementAndGet();
 		double temp_sum = 0;
 		int i = sumIndex - sum;
 		for(; i < sumIndex && i <= sSize; i++){

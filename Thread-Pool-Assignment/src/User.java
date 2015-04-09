@@ -1,9 +1,4 @@
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 
 public class User {
 
@@ -24,21 +19,23 @@ public class User {
 		ArrayList<Task> tasks= new ArrayList<Task>();
 		if(n_values_1!=null){
 			for (int i = 0; i < n_values_1.length; i++) {
-				tasks.add(new T_1(n_values_1[i]));
+				tasks.add(new T_1(n_values_1[i],i));
 			}
 		}
 		if(m_values_2!=null && l_values_2!=null){
 			for (int i = 0; i < m_values_2.length; i++) {
-				tasks.add(new T_2(l_values_2[i], m_values_2[i]));
+				tasks.add(new T_2(l_values_2[i], m_values_2[i],i));
 			}
 		}
 		Results res = new Results(n_values_1.length, m_values_2.length);
 		PoolManager pm = new PoolManager(Runtime.getRuntime().availableProcessors(), s, m, t,res);
 		Feeder F = new Feeder(pm,tasks);
+		
+		
 	}
 
 	public static void main(String[] args) {
-		
+
 
 		int[] n_values_1 = {88,14,365,39,700,17,585,61,94,6};//{88,14,365,39,700,17,585,61,94,6};
 		int[] l_values_2 = {61,334,24,16,682,11,24,5,476,71};//{5,8,15};//{17,454,8,565,20,27,6,15,657,30}; mul

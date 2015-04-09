@@ -60,7 +60,7 @@ public class PoolManager extends Thread{
 	}
 	
 	public void run(){
-		while(!results.isConatianAllResults()){
+		while(!stop_and_exit){
 			wakeUpFeeders();
 			while(!task_Q.isEmpty()){
 				while(!task_Q.peek().isDoneDividing()){
@@ -87,7 +87,6 @@ public class PoolManager extends Thread{
 	private class PoolThread extends Thread{
 		private Task task;
 		private Object lock;// = new Object();
-
 		private PoolThread(int i){
 			super("PoolThread "+i);
 			task = null;
@@ -96,6 +95,7 @@ public class PoolManager extends Thread{
 
 		/**Gives this thread a task to perform TODO times*/
 		public void set_task(Task t) {
+			
 			task = t;
 			task.decreaseOperationCount(m, s);
 			synchronized (lock) {
@@ -114,13 +114,7 @@ public class PoolManager extends Thread{
 					}
 				}
 				if(task!=null){
-					task.calculate(m, s);
-					/*if(task.isOperationEnded()){
-						//synchronized (results) {
-							results.report(task);
-						//}
-						
-					}*/
+					results.report(task,task.calculate(m, s));
 				}
 				task = null;
 			}

@@ -11,35 +11,48 @@ public class Results extends Thread{
 		super("Results");
 		t1_size = _t1_size;
 		t2_size = _t2_size;
-		report_T1 = new Vector<ReportT1>(_t1_size);
-		report_T2 = new Vector<ReportT2>(_t2_size);
-
+		report_T1 = new Vector<ReportT1>(t1_size);
+		report_T2 = new Vector<ReportT2>(t2_size);
 		this.start();
 	}
 
-	private void init(){
-		for (int i = 0; i < report_T1.size(); i++) {
-			report_T1.add(new ReportT1());
+	private void addT1(PartialResult p,Task t){
+		boolean isContained = false;
+		for (int i = 0; i < report_T1.size() && !isContained; i++) {
+			if(report_T1.get(i).getIndex() == t.getIndex()){
+				isContained = true;
+				report_T1.get(i).addData(p);
+			}
 		}
-
-		for (int i = 0; i < report_T2.size(); i++) {
-			report_T2.elementAt(i).
+		if(!isContained){
+			report_T1.add(new ReportT1(p, t.getmSize(), t.getIndex()));
+		}
+	}
+	
+	private void addT2(PartialResult p,Task t){
+		boolean isContained = false;
+		for (int i = 0; i < report_T2.size() && !isContained; i++) {
+			if(report_T2.get(i).getIndex() == t.getIndex()){
+				isContained = true;
+				report_T2.get(i).addData(p);
+			}
+		}
+		if(!isContained){
+			report_T2.add(new ReportT2(p, t.getmSize(), t.getsSize(), t.getIndex()));
+		}
+	}
+	
+	public synchronized void report(Task t, PartialResult p) {
+		
+		if(t instanceof T_1){
+			addT1(p, t);
+		}else{
+			
 		}
 	}
 
-	public synchronized boolean isConatianAllResults(){
-		return report_T1.size()+report_T2.size() >= t1_size+t2_size;
-	}
-
-	public synchronized void report(Task t, double partial_result) {
-		//	if(t.isReportPerformed())return;
-		//	t.setReportPerformed();
-
-
-	}
-
-	public int returnSizes(){//delete this
-		return report_T1.size()+report_T2.size();
+	public boolean resultsIsFull(){
+		return report_T1.size()+report_T2.size() == t1_size+t2_size;
 	}
 
 	@Override
@@ -70,34 +83,52 @@ public class Results extends Thread{
 
 
 	private class ReportT1{
-		double result;
-		int mSize;
-		String print;
+		PartialResult result;
+		int mSize,index;;
+		ReportT1(){result = new PartialResult();}
+		
+		private ReportT1(PartialResult p,int _mSize,int _index){
+			result=new PartialResult();
+			mSize = _mSize;
+			index=_index;
+		}
+		
+		private void addData(PartialResult p){
+			result.addData(p);
+		}
 
-		private void setData(Task t, double d){
-
-
+		public int getIndex() {
+			return index;
 		}
 
 		@Override
 		public String toString() {
-			return print;
+			return "Expr. type (1.1), n = "+mSize+": "+result.toString();
 		}
 	}
 
 	private class ReportT2{
-		double result;
-		int mSize,sSize;
-		String print;
-
-		private void setData(Task t, double d){
-
-
+		
+		PartialResult result;
+		int mSize,sSize,index;
+	//	ReportT2(){result = new PartialResult();}
+		
+		private ReportT2(PartialResult p,int _mSize,int _sSize,int _index){
+			result=new PartialResult();
+			mSize = _mSize;
+			sSize = _sSize;
+			index=_index;
 		}
-
+		
+		private void addData(PartialResult p){
+			result.addData(p);
+		}
+		public int getIndex() {
+			return index;
+		}
 		@Override
 		public String toString() {
-			return print;
+			return "Expr. type (1.2), l = "+mSize+", m = "+sSize+": "+result.toString();
 		}
 	}
 
@@ -105,12 +136,24 @@ public class Results extends Thread{
 
 class PartialResult{
 	private double mul, sum;
-	private int index;
 
-	PartialResult(double mul, double sum, int index){
+	PartialResult(){
+		mul=sum=0;
+	}
+	
+	PartialResult(double mul, double sum){
 		this.mul = mul;
 		this.sum = sum;
-		this.index = index;
+	}
+	
+	void addData(PartialResult p){
+		mul*=p.mul;
+		sum+=p.sum;
+	}
+	
+	@Override
+	public String toString() {
+		return ""+(mul+sum);
 	}
 }
 
