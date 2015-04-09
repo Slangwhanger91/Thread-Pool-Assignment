@@ -16,7 +16,7 @@ public class User {
 			int t, //PoolManager
 			int s, int m)//PoolThreads
 	{
-		ArrayList<Task> tasks= new ArrayList<Task>();
+		ArrayList<Task> tasks = new ArrayList<Task>();
 		if(n_values_1!=null){
 			for (int i = 0; i < n_values_1.length; i++) {
 				tasks.add(new T_1(n_values_1[i],i));
@@ -27,10 +27,9 @@ public class User {
 				tasks.add(new T_2(l_values_2[i], m_values_2[i],i));
 			}
 		}
-		Results res = new Results(n_values_1.length, m_values_2.length);
+		Result res = new Result(n_values_1.length, m_values_2.length);
 		PoolManager pm = new PoolManager(Runtime.getRuntime().availableProcessors(), s, m, t,res);
-		Feeder F = new Feeder(pm,tasks);
-		
+		new Feeder(pm,tasks);
 		
 		return pm;
 		
@@ -48,10 +47,8 @@ public class User {
 		int s = 5; int m = 6;
 		try {
 			solution(k, r, n1, l2, m2, t, s, m).join();
-		//	Thread.sleep(2000);
-		} catch (InterruptedException e){
-			e.printStackTrace();
-		}
+		} catch (InterruptedException e){e.printStackTrace();}
+
 		//Print test results for expression 1.1
 		for (int i = 0; i < n1.length; i++) {
 			System.out.println(""+n1[i]+" : "+calcMul1(n1[i]));

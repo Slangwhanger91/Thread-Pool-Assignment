@@ -9,20 +9,20 @@ public class PoolManager extends Thread{
 	private PoolThread[] threadsArr;//p threads to work with
 	private Vector<PoolThread> avaliableThreads;
 	private Queue<Task> task_Q;
-	/**amount of tasks each thread is allowed to perform*/
-	private int s, m, t;
-	private boolean stop_and_exit;
-	private Results results;
+	/**Amount of tasks each thread is allowed to perform*/
+	private int s, m;
+	/**Limits the maximum amount of tasks <b>this PoolManager</b> can store.*/
+	private int t;
+	private Result results;
 	private boolean threadsStop;
 
-	
-	PoolManager(int p, int s, int m, int t,Results _results){
+
+	PoolManager(int p, int s, int m, int t, Result _results){
 		super("PoolManager");
 		threadsStop = false;
 		results = _results;
 		avaliableThreads = new Vector<PoolThread>();
 		this.t = t;
-		stop_and_exit = false;
 		threadsArr = new PoolThread[p];
 		for (int j = 0; j < threadsArr.length; j++) {
 			threadsArr[j]=new PoolThread(j);
@@ -32,11 +32,7 @@ public class PoolManager extends Thread{
 		task_Q = new LinkedList<Task>();
 		this.start();
 	}
-	
-	public void terminate(){
-		stop_and_exit = true;
-	}
-	
+
 	private void terminateThreads(){
 		threadsStop = true;
 		for (int i = 0; i < threadsArr.length; i++) {
@@ -53,16 +49,17 @@ public class PoolManager extends Thread{
 		return true;
 	}
 
-	private void wakeUpFeeders(){
+	private void wakeUpFeeders(){//??? Should this be built for multiple feeders?
 		synchronized (this) {
 			this.notifyAll();
 		}
 	}
-	
+
+	/**Runs until all tasks are handled and then terminates all PoolThreads*/
 	public void run(){
-		while(!results.resultsIsFull()){
+		while(!results.resultsIsFull()){//Anymore new tasks?
 			wakeUpFeeders();
-			while(!task_Q.isEmpty()){
+			while(!task_Q.isEmpty()){//Finished all given tasks?
 				while(!task_Q.peek().isDoneDividing()){
 					if(!avaliableThreads.isEmpty()){
 						PoolThread pt = avaliableThreads.remove(0);
@@ -72,18 +69,13 @@ public class PoolManager extends Thread{
 				task_Q.poll();
 				wakeUpFeeders();
 			}
-			//System.out.println("finished " + results.returnSizes() + " tasks");
 		}
-		synchronized (results) {
-			results.notify();
-		}
-		terminateThreads();
-		
+		synchronized (results){ results.notify();}//allows results to start printing.
+		terminateThreads();//Since the amount of tasks is known from the start, we'll 
+		//also know when to STOP this PoolManager from running.
 	}
-	/**Stops the PoolManager from working and exit.*/
-	
 
-	/**Must only be known to PoolManager and have no interaction with any other class.*/
+	/**Private <b>PoolManager</b> threads for the <b>PoolManager</b> to control.*/
 	private class PoolThread extends Thread{
 		private Task task;
 		private Object lock;// = new Object();
@@ -93,9 +85,9 @@ public class PoolManager extends Thread{
 			lock = new Object();
 		}
 
-		/**Gives this thread a task to perform TODO times*/
+		/**Gives this thread a task to perform.*/
 		public void set_task(Task t) {
-			
+
 			task = t;
 			task.decreaseOperationCount(m, s);
 			synchronized (lock) {
@@ -115,17 +107,10 @@ public class PoolManager extends Thread{
 				}
 				if(task!=null){
 					PartialResult p = task.calculate(m, s);
-					results.report(task,p);
+					results.report(task, p);
 				}
 				task = null;
 			}
 		}
-
-		/*@SuppressWarnings("serial")
-		class PoolThreadException extends Exception{
-			public PoolThreadException (){
-				super("Method NULL Pointer Exception.");
-			}
-		}*/
 	}
 } 
