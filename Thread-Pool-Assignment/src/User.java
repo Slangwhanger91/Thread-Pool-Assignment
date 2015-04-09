@@ -35,30 +35,20 @@ public class User {
 		Results res = new Results(n_values_1.length, m_values_2.length);
 		PoolManager pm = new PoolManager(Runtime.getRuntime().availableProcessors(), s, m, t,res);
 		Feeder F = new Feeder(pm,tasks);
-		pm.terminate();
 	}
 
 	public static void main(String[] args) {
 		
 
 		int[] n_values_1 = {88,14,365,39,700,17,585,61,94,6};//{88,14,365,39,700,17,585,61,94,6};
-		int[] l_values_2 = {17,454,8,565,20,27,6,15,657,30};//{5,8,15};//{17,454,8,565,20,27,6,15,657,30}; mul
+		int[] l_values_2 = {61,334,24,16,682,11,24,5,476,71};//{5,8,15};//{17,454,8,565,20,27,6,15,657,30}; mul
 		int[] m_values_2 = {17,454,8,565,20,27,6,15,657,30};//{9,20,30};//{17,454,8,565,20,27,6,15,657,30}; sum
 		int k = n_values_1.length; int r = l_values_2.length;
 
 		int t = 4;
 		int s = 5; int m = 6;
-
-		//solution(k, r, n_values_1, l_values_2, m_values_2, t, s, m);
-
-	//	for (int i = 0; i < 100; i++) {
-			solution(k, r, n_values_1, l_values_2, m_values_2, t, s, m);
-	//	}
-
-		//T_2 t2 = new T_2(m, s);
-		//solution(k, 0, n_values_1, null, null, t, s, m);
+		solution(k, r, n_values_1, l_values_2, m_values_2, t, s, m);
 		
-		calcSum1(5, 9);
 
 		
 }

@@ -13,6 +13,7 @@ public class Feeder extends Thread{
 	}
 	
 	public void run(){
+		int s=0;
 		for (int n = 0; n < allTasks.size(); n++) {
 			boolean flag = pm.addTask(allTasks.get(n));
 			if(!flag){
@@ -22,7 +23,5 @@ public class Feeder extends Thread{
 				} catch (InterruptedException e) {e.printStackTrace();}
 			}
 		}
-		
-		System.out.println("feeder finished");
 	}
 }

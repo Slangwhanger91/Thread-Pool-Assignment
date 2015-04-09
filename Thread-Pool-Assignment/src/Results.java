@@ -5,7 +5,7 @@ public class Results extends Thread{
 	private Vector<ReportT1> report_T1;
 	private Vector<ReportT2> report_T2;
 	private int t1_size, t2_size;
-	
+	int z=1;
 	
 	public Results(int _t1_size,int _t2_size){
 		super("Results");
@@ -16,47 +16,48 @@ public class Results extends Thread{
 		this.start();
 	}
 	
+	public synchronized boolean isConatianAllResults(){
+		return report_T1.size()+report_T2.size() >= t1_size+t2_size;
+	}
+	
+	public synchronized void report(Task t) {
+	//	if(t.isReportPerformed())return;
+	//	t.setReportPerformed();
+		if(t instanceof T_1){
+			report_T1.addElement(new ReportT1(t));
+		}else{
+			report_T2.addElement(new ReportT2(t));
+		}
+		
+	}
+	
 	public int returnSizes(){//delete this
 		return report_T1.size()+report_T2.size();
 	}
 	
-	public synchronized boolean isConatianAllResults(){
-		return report_T1.size()+report_T2.size() == t1_size+t2_size;
-	}
-	
-	public synchronized void report(Task t) {
-		if(t.reportPerformed())return;
-		if(t instanceof T_1){
-			report_T1.addElement(new ReportT1((T_1)t));
-		}else{
-			report_T2.addElement(new ReportT2((T_2)t));
-		}
-	}
-	
 	@Override
 	public void run() {
-		while(!isConatianAllResults()){//changed
+		//while(!isConatianAllResults()){
+			
 			synchronized (this) {
 				try {
-					this.wait();
+					this.wait(5000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-		}
+			
+		//}
 		System.out.println("print all expressions of type (1.1) first");
 		while(!report_T1.isEmpty()){
-			//System.out.println(report_T1.remove(0));
-			report_T1.remove(0);
+			System.out.println(report_T1.remove(0));
 		}
 		System.out.println("print all expressions of type (1.2) second");
 		while(!report_T2.isEmpty()){
-			//System.out.println(report_T2.remove(0));
-			report_T2.remove(0);
+			System.out.println(report_T2.remove(0));
 		}
-		
-		System.out.println("result finished");
+		System.out.println("Result is DONE!");
 	}
 	
 	private class ReportT1{
@@ -64,9 +65,9 @@ public class Results extends Thread{
 		int mSize;
 		String print;
 		
-		private ReportT1(T_1 t){
+		private ReportT1(Task t){
 			mSize = t.getmSize();
-			result = t.report();
+			result = t.getResults();
 			print = "Expr. Type (1.1), n = "+mSize+": "+result;
 		}
 		
@@ -80,10 +81,10 @@ public class Results extends Thread{
 		int mSize,sSize;
 		String print;
 		
-		private ReportT2(T_2 t){
+		private ReportT2(Task t){
 			mSize = t.getmSize();
 			sSize = t.getsSize();
-			result = t.report();
+			result = t.getResults();
 			
 			if(mSize == sSize){
 				print = "Expr. Type (1.2), l = m = "+sSize+": "+result;

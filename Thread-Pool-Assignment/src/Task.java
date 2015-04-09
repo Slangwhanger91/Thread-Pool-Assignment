@@ -1,18 +1,17 @@
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 abstract public class Task {
-	protected double sum_result;
-	protected double mul_result;
+	private double mul_result,sum_result;
 	protected int mulIndex, sumIndex;
 	/**Actions allowed to do, when either 'n' or 'm' reaches 0 this thread must stop*/
 	protected int mul_todo, sum_todo;
 	protected int mul_done,sum_done;
 	/**Number of actions when this object was first initialized.*/
 	protected int mSize, sSize;
-	protected Vector<node> available_tasks;
-	private boolean reportPerformed;
-
+	protected Vector<node> ranges;
+	protected boolean reportPerformed;
 	public Task(int mul){
 		reportPerformed = false;
 		sum_result = 0;
@@ -20,7 +19,7 @@ abstract public class Task {
 		mulIndex = 1;
 		sumIndex = 1;
 		mul_done = mul_todo = mul; mSize = mul;
-		available_tasks = new Vector<node>();
+		ranges = new Vector<node>();
 	}
 
 	/**
@@ -53,6 +52,9 @@ abstract public class Task {
 		}
 	}
 	
+	public void setReportPerformed(){reportPerformed = true;}
+	public boolean isReportPerformed(){return reportPerformed;}
+	
 	public int getmSize() {
 		return mSize;
 	}
@@ -62,8 +64,8 @@ abstract public class Task {
 	}
 
 	/**Synchronized*/
-	protected synchronized node pick_task(){
-		return available_tasks.remove(0);
+	protected synchronized node pickRange(){
+		return ranges.remove(0);
 	}
 	//_________________________
 	
@@ -87,37 +89,36 @@ abstract public class Task {
 	 * Report final result
 	 * @return
 	 */
-	public synchronized double report(){
-		reportPerformed = true;
+	public double getResults(){
 		return sum_result + mul_result;
 	}
 
-	public boolean isDone(){//be mroe creative..
-		return mul_todo <= 0 && sum_todo <= 0;
+	public boolean isDoneDividing(){
+		return mul_todo < 0 && sum_todo < 0;
 	}
+	
 	public synchronized boolean isOperationEnded(){
-		return mul_done <= 0 && sum_done <= 0;
+		return (mul_done <= 0 && sum_done <= 0);
 	}
-	public void decrease_operation_count(int mul, int sum){//probably not needed - only the poolmanager thread interacts with it
+	
+	public void decreaseOperationCount(int mul, int sum){//probably not needed - only the poolmanager thread interacts with it
 		mulIndex += mul;
 		mul_todo -= mul;
-
 		sumIndex += sum;
 		sum_todo -= sum;
-
-		available_tasks.add(new node(mulIndex, sumIndex));
+		ranges.addElement(new node(mulIndex, sumIndex));
 	}
 	
-	protected synchronized void decrease_done_count(int mul, int sum){
-		mul_done -= mul;
-		sum_done -= sum;
-	}
-	
-	public boolean reportPerformed(){
-		return reportPerformed;
+	protected synchronized void decreaseDoneCount(int mul, int sum){
+		mul_done = mul_done-mul;
+		sum_done = sum_done-sum;
+	//	if(isOperationEnded())setReportPerformed();
 	}
 
 	abstract public void calculate(int mul, int sum);
+	
+	
+	
 }
 
 /**1.1*/
@@ -129,20 +130,18 @@ class T_1 extends Task{
 
 	@Override
 	public void calculate(int mul, int sum) {
-		node taskInfo = pick_task();
-		boolean performed = false;
+		node taskInfo = pickRange();
 		double temp_mul = 1;
 		int i = taskInfo.getMulIndex() - mul;
 		for(double temp; i < taskInfo.getMulIndex() && i <= mSize; i++){
-			performed = true;
 			temp = (1.0 / (2.0 * i + 1));
 			if(i % 2 == 0) temp_mul = temp_mul * temp;
 			else temp_mul = temp_mul * (-1.0) * temp;
 		}
-		if(performed) {
-			fillMulResult(temp_mul);
-			decrease_done_count(mul, sum);
-		}
+		fillMulResult(temp_mul);
+		decreaseDoneCount(mul, sum);
+		
+		 
 	}
 
 }
@@ -155,7 +154,7 @@ class T_2 extends Task{
 	}
 
 	public void calculate(int mul, int sum){
-		node taskInfo = pick_task();
+		node taskInfo = pickRange();
 		boolean performed = false;
 		double temp_mul = 1;
 		int i = taskInfo.getMulIndex() - mul;
@@ -168,10 +167,11 @@ class T_2 extends Task{
 		}
 		if(performed) fillMulResult(temp_mul);
 		calculateSum(sum, taskInfo.getSumIndex(),mul);
-		decrease_done_count(mul, sum);
+		decreaseDoneCount(mul, sum);
 	}
 	
 	private void calculateSum(int sum, int sumIndex,int mul) {
+	//	z.incrementAndGet();
 		boolean performed = false;
 		double temp_sum = 0;
 		int i = sumIndex - sum;
@@ -180,9 +180,7 @@ class T_2 extends Task{
 			double temp = (i / (2.0 * i * i + 1));
 			temp_sum += temp;
 		}
-		if(performed) {
-			fillSumResult(temp_sum);
-		}
+		if(performed) fillSumResult(temp_sum);
 	}
 	
 	@Override

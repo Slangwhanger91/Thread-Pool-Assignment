@@ -1,7 +1,6 @@
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 
@@ -44,30 +43,27 @@ public class PoolManager extends Thread{
 			synchronized (threadsArr[i].lock) {
 				threadsArr[i].lock.notify();
 			}
-			
 		}
 	}
 
 	/**for the use of the Feeder class, added synchronized if multiple Feeder want to use this PoolManager*/
 	public synchronized boolean addTask(Task T){
 		if(task_Q.size() == t) return false;
-		task_Q.add(T); return true;
+		task_Q.add(T); 
+		return true;
 	}
 
 	private void wakeUpFeeders(){
 		synchronized (this) {
 			this.notifyAll();
 		}
-
 	}
 	
-	
-	
 	public void run(){
-		while(!stop_and_exit || !results.isConatianAllResults()){
+		while(!results.isConatianAllResults()){
 			wakeUpFeeders();
 			while(!task_Q.isEmpty()){
-				while(!task_Q.peek().isDone()){
+				while(!task_Q.peek().isDoneDividing()){
 					if(!avaliableThreads.isEmpty()){
 						PoolThread pt = avaliableThreads.remove(0);
 						pt.set_task(task_Q.peek());
@@ -76,25 +72,23 @@ public class PoolManager extends Thread{
 				task_Q.poll();
 				wakeUpFeeders();
 			}
-			
-			System.out.println("stuck here " + results.returnSizes() + "/20");
+			//System.out.println("finished " + results.returnSizes() + " tasks");
 		}
 		synchronized (results) {
 			results.notify();
 		}
 		terminateThreads();
 		
-		System.out.println("PM finished " +  results.returnSizes() + "/20");
 	}
 	/**Stops the PoolManager from working and exit.*/
 	
 
 	/**Must only be known to PoolManager and have no interaction with any other class.*/
-	class PoolThread extends Thread{
+	private class PoolThread extends Thread{
 		private Task task;
 		private Object lock;// = new Object();
 
-		public PoolThread(int i){
+		private PoolThread(int i){
 			super("PoolThread "+i);
 			task = null;
 			lock = new Object();
@@ -103,7 +97,7 @@ public class PoolManager extends Thread{
 		/**Gives this thread a task to perform TODO times*/
 		public void set_task(Task t) {
 			task = t;
-			task.decrease_operation_count(m, s);
+			task.decreaseOperationCount(m, s);
 			synchronized (lock) {
 				lock.notify();	
 			}
@@ -113,18 +107,23 @@ public class PoolManager extends Thread{
 			while(!threadsStop){
 				avaliableThreads.addElement(this);
 				synchronized(lock){
-					try {lock.wait();} catch (InterruptedException e) {e.printStackTrace();}
+					try{
+						lock.wait();
+					}catch(InterruptedException e){
+						e.printStackTrace();
+					}
 				}
 				if(task!=null){
 					task.calculate(m, s);
 					if(task.isOperationEnded()){
-						results.report(task);
+						//synchronized (results) {
+							results.report(task);
+						//}
+						
 					}
 				}
 				task = null;
 			}
-			
-			System.out.println("thread finished");
 		}
 
 		@SuppressWarnings("serial")
