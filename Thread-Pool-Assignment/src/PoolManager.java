@@ -2,12 +2,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
 
-
-
-
+/**@author 305258451 & 317100758*/
 public class PoolManager extends Thread{
-	private PoolThread[] threadsArr;//p threads to work with
-	private Vector<PoolThread> avaliableThreads;
+	
+	private PoolThread[] poolThreads_Arr;//p threads to work with
+	private Vector<PoolThread> avaliableThreads;//Can this be a Queue instead???
 	private Queue<Task> task_Q;
 	/**Amount of tasks each thread is allowed to perform*/
 	private int s, m;
@@ -16,28 +15,38 @@ public class PoolManager extends Thread{
 	private Result results;
 	private boolean threadsStop;
 
-
-	PoolManager(int p, int s, int m, int t, Result _results){
+	/**
+	 * @param p - Amount of working <b>PoolThreads</b> for <b>this PoolManager</b> 
+	 * to work with.
+	 * @param s - Amount of summands each <b>PoolThread</b> is allowed to perform.
+	 * @param m - Amount of multiplicands each <b>PoolThread</b> is allowed to perform.
+	 * @param t - Maximum amount of <b>Task</b>s <b>this PoolManager</b> is allowed to 
+	 * store in any given time.
+	 * @param results - Result entity to save partial and complete data for each <b>Task</b>.
+	 */
+	PoolManager(int p, int s, int m, int t, Result results){
 		super("PoolManager");
 		threadsStop = false;
-		results = _results;
-		avaliableThreads = new Vector<PoolThread>();
+		this.results = results;
 		this.t = t;
-		threadsArr = new PoolThread[p];
-		for (int j = 0; j < threadsArr.length; j++) {
-			threadsArr[j]=new PoolThread(j);
-			threadsArr[j].start();
+		avaliableThreads = new Vector<PoolThread>(t);
+		poolThreads_Arr = new PoolThread[p];
+		for (int i = 0; i < poolThreads_Arr.length; i++) {
+			poolThreads_Arr[i] = new PoolThread(i);
+			poolThreads_Arr[i].start();
 		}
 		this.s = s; this.m = m;
 		task_Q = new LinkedList<Task>();
 		this.start();
 	}
 
+	/**Safely 'terminate' all PoolThreads when they're no longer needed and <b>this
+	 * PoolManager</b> shuts down.*/
 	private void terminateThreads(){
 		threadsStop = true;
-		for (int i = 0; i < threadsArr.length; i++) {
-			synchronized (threadsArr[i].lock) {
-				threadsArr[i].lock.notify();
+		for (int i = 0; i < poolThreads_Arr.length; i++) {
+			synchronized (poolThreads_Arr[i].lock) {
+				poolThreads_Arr[i].lock.notify();
 			}
 		}
 	}
@@ -49,6 +58,7 @@ public class PoolManager extends Thread{
 		return true;
 	}
 
+	/**Let the <b>Feeder</b> know it may send more <b>Task</b>s to <b>this PoolManager</b> again*/
 	private void wakeUpFeeders(){//??? Should this be built for multiple feeders?
 		synchronized (this) {
 			this.notifyAll();
@@ -78,23 +88,25 @@ public class PoolManager extends Thread{
 	/**Private <b>PoolManager</b> threads for the <b>PoolManager</b> to control.*/
 	private class PoolThread extends Thread{
 		private Task task;
-		private Object lock;// = new Object();
+		private Object lock;
+
 		private PoolThread(int i){
 			super("PoolThread "+i);
 			task = null;
 			lock = new Object();
 		}
 
-		/**Gives this thread a task to perform.*/
+		/**Gives this PoolThread a task to perform.*/
 		public void set_task(Task t) {
-
 			task = t;
 			task.decreaseOperationCount(m, s);
 			synchronized (lock) {
 				lock.notify();	
 			}
 		}
-
+		/**The run method for each <b>PoolThread</b> within the <b>PoolManager</b>:
+		 * <br>Calculates parts of a given <b>Task</b> and then reports the data
+		 * to <b>results</b> where it's saved.*/
 		public void run(){
 			while(!threadsStop){
 				avaliableThreads.addElement(this);
