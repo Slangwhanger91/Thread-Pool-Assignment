@@ -1,12 +1,13 @@
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
 
 /**@author 305258451 & 317100758*/
 public class PoolManager extends Thread{
-	
-	private PoolThread[] poolThreads_Arr;//p threads to work with
-	private Vector<PoolThread> avaliableThreads;//Can this be a Queue instead???
+
+	private ArrayList<PoolThread> poolThreads_Arr;//p threads to work with
+	private Vector<PoolThread> avaliableThreads;
 	private Queue<Task> task_Q;
 	/**Amount of tasks each thread is allowed to perform*/
 	private int s, m;
@@ -30,10 +31,10 @@ public class PoolManager extends Thread{
 		this.results = results;
 		this.t = t;
 		avaliableThreads = new Vector<PoolThread>(t);
-		poolThreads_Arr = new PoolThread[p];
-		for (int i = 0; i < poolThreads_Arr.length; i++) {
-			poolThreads_Arr[i] = new PoolThread(i);
-			poolThreads_Arr[i].start();
+		poolThreads_Arr = new ArrayList<PoolThread>(p);
+		for (int i = 0; i < p; i++) {
+			poolThreads_Arr.add(new PoolThread(i));
+			//poolThreads_Arr[i].start();
 		}
 		this.s = s; this.m = m;
 		task_Q = new LinkedList<Task>();
@@ -44,11 +45,29 @@ public class PoolManager extends Thread{
 	 * PoolManager</b> shuts down.*/
 	private void terminateThreads(){
 		threadsStop = true;
-		for (int i = 0; i < poolThreads_Arr.length; i++) {
-			synchronized (poolThreads_Arr[i].lock) {
-				poolThreads_Arr[i].lock.notify();
+		while(!poolThreads_Arr.isEmpty()){
+			PoolThread p = poolThreads_Arr.get(0);
+			if(p.isAlive()){
+				synchronized (p.lock) {
+					p.lock.notify();
+				}
 			}
+			else poolThreads_Arr.remove(0);
 		}
+		/*threadsStop = true;
+		boolean notTerminated=true,aliveExist=false;
+		while(notTerminated){
+			for (int i = 0; i < poolThreads_Arr.length; i++){
+				if(poolThreads_Arr[i].isAlive()){
+					aliveExist=true;
+					synchronized (poolThreads_Arr[i].lock) {
+						poolThreads_Arr[i].lock.notify();
+					}
+				}
+			}
+			if(!aliveExist)notTerminated=false;
+			aliveExist=false;
+		}*/
 	}
 
 	/**for the use of the Feeder class, added synchronized if multiple Feeder want to use this PoolManager*/
@@ -58,8 +77,8 @@ public class PoolManager extends Thread{
 		return true;
 	}
 
-	/**Let the <b>Feeder</b> know it may send more <b>Task</b>s to <b>this PoolManager</b> again*/
-	private void wakeUpFeeders(){//??? Should this be built for multiple feeders?
+	/**Let the <b>Feeder</b>s know they may send more <b>Task</b>s to <b>this PoolManager</b> again*/
+	private void wakeUpFeeders(){
 		synchronized (this) {
 			this.notifyAll();
 		}
@@ -70,7 +89,8 @@ public class PoolManager extends Thread{
 		while(!results.resultsIsFull()){//Anymore new tasks?
 			wakeUpFeeders();
 			while(!task_Q.isEmpty()){//Finished all given tasks?
-				while(!task_Q.peek().isDoneDividing()){
+				System.out.println(task_Q.peek());
+				while(!task_Q.peek().isDoneDividing()){//null???
 					if(!avaliableThreads.isEmpty()){
 						PoolThread pt = avaliableThreads.remove(0);
 						pt.set_task(task_Q.peek());
@@ -80,9 +100,9 @@ public class PoolManager extends Thread{
 				wakeUpFeeders();
 			}
 		}
-		synchronized (results){ results.notify();}//allows results to start printing.
 		terminateThreads();//Since the amount of tasks is known from the start, we'll 
 		//also know when to STOP this PoolManager from running.
+		synchronized (results){ results.notify();}//allows results to start printing.
 	}
 
 	/**Private <b>PoolManager</b> threads for the <b>PoolManager</b> to control.*/
@@ -94,6 +114,7 @@ public class PoolManager extends Thread{
 			super("PoolThread "+i);
 			task = null;
 			lock = new Object();
+			start();
 		}
 
 		/**Gives this PoolThread a task to perform.*/
@@ -109,7 +130,7 @@ public class PoolManager extends Thread{
 		 * to <b>results</b> where it's saved.*/
 		public void run(){
 			while(!threadsStop){
-				avaliableThreads.addElement(this);
+				avaliableThreads.addElement(this);//synchronized by Vector
 				synchronized(lock){
 					try{
 						lock.wait();

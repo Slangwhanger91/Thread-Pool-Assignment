@@ -16,21 +16,23 @@ public class User {
 			int t, //PoolManager
 			int s, int m)//PoolThreads
 	{
-		ArrayList<Task> tasks = new ArrayList<Task>();
+		ArrayList<Task> tasks1 = new ArrayList<Task>();
 		if(n_values_1!=null){
 			for (int i = 0; i < n_values_1.length; i++) {
-				tasks.add(new T_1(n_values_1[i],i));
+				tasks1.add(new T_1(n_values_1[i],i));
 			}
 		}
+		ArrayList<Task> tasks2 = new ArrayList<Task>();
+		
 		if(m_values_2!=null && l_values_2!=null){
 			for (int i = 0; i < m_values_2.length; i++) {
-				tasks.add(new T_2(l_values_2[i], m_values_2[i],i));
+				tasks2.add(new T_2(l_values_2[i], m_values_2[i],i));
 			}
 		}
 		Result res = new Result(n_values_1.length, m_values_2.length);
-		PoolManager pm = new PoolManager(Runtime.getRuntime().availableProcessors(), s, m, t,res);
-		new Feeder(pm,tasks);
-
+		PoolManager pm = new PoolManager(/*Runtime.getRuntime().availableProcessors()*/200, s, m, t,res);
+		new Feeder(pm, tasks1);
+		new Feeder(pm, tasks2);
 		return pm;
 	}
 

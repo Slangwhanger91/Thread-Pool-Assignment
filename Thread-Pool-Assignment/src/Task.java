@@ -1,4 +1,4 @@
-import java.util.Vector;//Can we switch to ArrayList?
+import java.util.Vector;
 /**Represents a general Task defined by the User thread.
  * <br>Type variations: (1.1), (1.2)*/
 abstract public class Task {
@@ -19,7 +19,7 @@ abstract public class Task {
 	 * <br>f.e: a Task the size of 100 handled by threads that may only handle
 	 * 40 actions per try will consist of the following ranges: 100 to 60, 60 to 20
 	 * and 20 to -20(0).*/
-	protected Vector<node> ranges;
+	protected Vector<RangeNode> ranges;
 
 	/**Key variable to match with the same index from a <b>Task</b>*/
 	private int index;
@@ -45,15 +45,15 @@ abstract public class Task {
 		mulIndex = 1;
 		sumIndex = 1;
 
-		ranges = new Vector<node>();
+		ranges = new Vector<RangeNode>();
 	}
 
 	/**Stores the range for a PoolThread to work with*/
-	protected class node{
+	protected class RangeNode{
 		private int mulIndex;
 		private int sumIndex;
 
-		public node(int mulIndex, int sumIndex){
+		public RangeNode(int mulIndex, int sumIndex){
 			this.mulIndex = mulIndex;
 			this.sumIndex = sumIndex;
 		}
@@ -80,14 +80,14 @@ abstract public class Task {
 	}
 
 	/**Synchronized*/
-	protected synchronized node pickRange(){
+	protected synchronized RangeNode pickRange(){
 		return ranges.remove(0);
 	}
 
 	/**Returns true if <b>this Task</b> has no more new parts to divide between 
 	 *the <b>PoolManager</b>'s threads.*/
 	public boolean isDoneDividing(){
-		return mul_todo < 0 && sum_todo < 0;//shouldn't this be triggered at <= ???
+		return mul_todo <= 0 && sum_todo <= 0;
 	}
 
 	/**Decreases the amount of operations left to attend to/begin.
@@ -99,7 +99,7 @@ abstract public class Task {
 		sumIndex += sum;
 		sum_todo -= sum;
 
-		ranges.addElement(new node(mulIndex, sumIndex));
+		ranges.addElement(new RangeNode(mulIndex, sumIndex));
 	}
 
 	/**Accounts for finished operations within a <b>Task</b>.
@@ -124,7 +124,7 @@ class T_1 extends Task{
 	 * * <br> returns a <b>PartialResult</b>.*/
 	@Override
 	public PartialResult calculate(int mul, int sum) {
-		node taskInfo = pickRange();
+		RangeNode taskInfo = pickRange();
 		double temp_mul = 1;
 		int i = taskInfo.getMulIndex() - mul;
 		for(double temp; i < taskInfo.getMulIndex() && i <= mSize; i++){
@@ -146,7 +146,7 @@ class T_2 extends Task{
 	/**Calculation method for 1.2 Tasks.
 	 * <br> returns a <b>PartialResult</b>.*/
 	public PartialResult calculate(int mul, int sum){
-		node taskInfo = pickRange();
+		RangeNode taskInfo = pickRange();
 		double temp_mul = 1;
 		int i = taskInfo.getMulIndex() - mul;
 		for(;i < taskInfo.getMulIndex() && i <= mSize; i++){

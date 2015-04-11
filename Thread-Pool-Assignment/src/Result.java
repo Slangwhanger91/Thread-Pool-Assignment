@@ -1,4 +1,4 @@
-import java.util.Vector; //switch with ArrayList???
+import java.util.Vector;
 
 public class Result extends Thread{
 	/**Container for partial/finished 1.1 tasks.*/
@@ -57,7 +57,7 @@ public class Result extends Thread{
 	}
 
 	/**
-	 * - A method for the synchronized <i>report(Task t, PartialResult pr)</i> to 
+	 * A method for the synchronized <i>report(Task t, PartialResult pr)</i> to 
 	 * add data into an existing 1.2 <b>Task</b>'s report 
 	 * <br><b>or</b>
 	 * <br>- Make a <b>new 1.2 Task</b> to fill with the mentioned data and then
@@ -109,6 +109,7 @@ public class Result extends Thread{
 	 */
 	private abstract class ReportT{
 		protected PartialResult pr_to_fill;
+		/**Number of multiplicand operations to perform*/
 		protected int mSize;
 		/**Key variable to match with the same index from a <b>Task</b>*/
 		private int index;
@@ -147,7 +148,8 @@ public class Result extends Thread{
 
 	/**Extension of <b>ReportT</b> designed for <b>Task</b> type 1.2 objects*/
 	private class ReportT2 extends ReportT{
-		private int sSize;//Do we actually need this???
+		/**Number of summand operations to perform*/
+		private int sSize;
 
 		private ReportT2(PartialResult pr, int mSize, int sSize, int index){
 			super(pr, mSize, index);
