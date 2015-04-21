@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
+import java.util.concurrent.Semaphore;
 
 /**@author 305258451 & 317100758*/
 public class PoolManager extends Thread{
@@ -15,6 +16,8 @@ public class PoolManager extends Thread{
 	private int t;
 	private Result results;
 	private boolean threadsStop;
+	private Semaphore add_task_lock;
+	private Semaphore feederWakeUp_sem;
 
 	/**
 	 * @param p - Amount of working <b>PoolThreads</b> for <b>this PoolManager</b> 
@@ -27,6 +30,8 @@ public class PoolManager extends Thread{
 	 */
 	PoolManager(int p, int s, int m, int t, Result results){
 		super("PoolManager");
+		add_task_lock = new Semaphore(1);
+		feederWakeUp_sem = new Semaphore(0);
 		threadsStop = false;
 		this.results = results;
 		this.t = t;
@@ -48,9 +53,10 @@ public class PoolManager extends Thread{
 		while(!poolThreads_Arr.isEmpty()){
 			PoolThread p = poolThreads_Arr.get(0);
 			if(p.isAlive()){
-				synchronized (p.lock) {
+				/*synchronized (p.lock) {
 					p.lock.notify();
-				}
+				}*/
+				p.sem_lock.release();
 			}
 			else poolThreads_Arr.remove(0);
 		}
@@ -70,17 +76,36 @@ public class PoolManager extends Thread{
 		}*/
 	}
 
-	/**for the use of the Feeder class, added synchronized if multiple Feeder want to use this PoolManager*/
-	public synchronized boolean addTask(Task T){
-		if(task_Q.size() == t) return false;
-		task_Q.add(T); 
+	/**for the use of the Feeder class. This method is synchronized in case multiple Feeders want to use this PoolManager*/
+	public boolean addTask(Task T){
+		try {
+			add_task_lock.acquire();
+			if(task_Q.size() == t) return false;
+			task_Q.add(T);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			add_task_lock.release();
+		}
 		return true;
 	}
 
 	/**Let the <b>Feeder</b>s know they may send more <b>Task</b>s to <b>this PoolManager</b> again*/
 	private void wakeUpFeeders(){
-		synchronized (this) {
+		/*synchronized (this) {
 			this.notifyAll();
+		}*/
+		//System.out.println("SEM VALUE:" + feederWakeUp_sem.availablePermits());
+		if(feederWakeUp_sem.availablePermits() < 1)
+			feederWakeUp_sem.release();
+	}
+
+	public void feederAcquire(){
+		try {
+			feederWakeUp_sem.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -89,11 +114,11 @@ public class PoolManager extends Thread{
 		while(!results.resultsIsFull()){//Anymore new tasks?
 			wakeUpFeeders();
 			while(!task_Q.isEmpty()){//Finished all given tasks?
-				System.out.println(task_Q.peek());
+				//System.out.println(task_Q.peek());
 				while(!task_Q.peek().isDoneDividing()){//null???
 					if(!avaliableThreads.isEmpty()){
 						PoolThread pt = avaliableThreads.remove(0);
-						pt.set_task(task_Q.peek());
+						pt.setTask(task_Q.peek());
 					}
 				}
 				task_Q.poll();
@@ -102,28 +127,33 @@ public class PoolManager extends Thread{
 		}
 		terminateThreads();//Since the amount of tasks is known from the start, we'll 
 		//also know when to STOP this PoolManager from running.
-		synchronized (results){ results.notify();}//allows results to start printing.
+
+		//synchronized (results){ results.notify();}//allows results to start printing.
+		results.outputResult_sem.release();
 	}
 
 	/**Private <b>PoolManager</b> threads for the <b>PoolManager</b> to control.*/
 	private class PoolThread extends Thread{
 		private Task task;
-		private Object lock;
+		//private Object lock;
+		private Semaphore sem_lock;
 
 		private PoolThread(int i){
 			super("PoolThread "+i);
 			task = null;
-			lock = new Object();
+			//lock = new Object();
+			sem_lock = new Semaphore(0);
 			start();
 		}
 
 		/**Gives this PoolThread a task to perform.*/
-		public void set_task(Task t) {
+		public void setTask(Task t) {
 			task = t;
 			task.decreaseOperationCount(m, s);
-			synchronized (lock) {
+			sem_lock.release();
+			/*synchronized (lock) {
 				lock.notify();	
-			}
+			}*/
 		}
 		/**The run method for each <b>PoolThread</b> within the <b>PoolManager</b>:
 		 * <br>Calculates parts of a given <b>Task</b> and then reports the data
@@ -131,12 +161,17 @@ public class PoolManager extends Thread{
 		public void run(){
 			while(!threadsStop){
 				avaliableThreads.addElement(this);//synchronized by Vector
-				synchronized(lock){
+				/*synchronized(lock){
 					try{
 						lock.wait();
 					}catch(InterruptedException e){
 						e.printStackTrace();
 					}
+				}*/
+				try {
+					sem_lock.acquire();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 				if(task!=null){
 					PartialResult p = task.calculate(m, s);

@@ -33,9 +33,11 @@ public class User {
 		PoolManager pm = new PoolManager(/*Runtime.getRuntime().availableProcessors()*/200, s, m, t,res);
 		new Feeder(pm, tasks1);
 		new Feeder(pm, tasks2);
+		
 		return pm;
 	}
 
+	
 	
 	
 	

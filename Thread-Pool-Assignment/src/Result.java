@@ -1,4 +1,5 @@
 import java.util.Vector;
+import java.util.concurrent.Semaphore;
 
 public class Result extends Thread{
 	/**Container for partial/finished 1.1 tasks.*/
@@ -7,6 +8,8 @@ public class Result extends Thread{
 	private Vector<ReportT2> reportT2_arr;
 	/**The general amount of tasks*/
 	private int t1_size, t2_size;
+	private Semaphore report_sem;
+	public Semaphore outputResult_sem;
 
 	/**
 	 * <b>Start</b>s after efficiently initializing the containers for each 
@@ -20,6 +23,8 @@ public class Result extends Thread{
 		this.t2_size = t2_size;
 		reportT1_arr = new Vector<ReportT1>(t1_size);
 		reportT2_arr = new Vector<ReportT2>(t2_size);
+		report_sem = new Semaphore(1);
+		outputResult_sem = new Semaphore(0);
 		start();
 	}
 
@@ -29,9 +34,14 @@ public class Result extends Thread{
 	 * @param t
 	 * @param pr
 	 */
-	public synchronized void report(Task t, PartialResult pr) {
-		if(t instanceof T_1) addT1(pr, t);
-		else addT2(pr, t);
+	public void report(Task t, PartialResult pr) {
+		try {
+			report_sem.acquire();
+			if(t instanceof T_1) addT1(pr, t);
+			else addT2(pr, t);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} finally {report_sem.release();}
 	}
 
 	/**
@@ -88,9 +98,14 @@ public class Result extends Thread{
 
 	@Override
 	public void run() {
-		synchronized (this) {
+		/*synchronized (this) {
 			try {this.wait();} catch (InterruptedException e) {e.printStackTrace();}
-		}
+		}*/
+		try {
+			outputResult_sem.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}//do we actually need a finnaly/release statement here???
 
 		System.out.println("print all expressions of type (1.1) first");
 		while(!reportT1_arr.isEmpty()){

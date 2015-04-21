@@ -1,4 +1,5 @@
 import java.util.Vector;
+import java.util.concurrent.Semaphore;
 /**Represents a general Task defined by the User thread.
  * <br>Type variations: (1.1), (1.2)*/
 abstract public class Task {
@@ -23,6 +24,9 @@ abstract public class Task {
 
 	/**Key variable to match with the same index from a <b>Task</b>*/
 	private int index;
+	
+	private Semaphore range_sem;
+	private Semaphore dec_count_sem;
 	//==============================================================================
 
 	/**
@@ -46,6 +50,8 @@ abstract public class Task {
 		sumIndex = 1;
 
 		ranges = new Vector<RangeNode>();
+		range_sem = new Semaphore(1);
+		dec_count_sem = new Semaphore(1);
 	}
 
 	/**Stores the range for a PoolThread to work with*/
@@ -80,7 +86,13 @@ abstract public class Task {
 	}
 
 	/**Synchronized*/
-	protected synchronized RangeNode pickRange(){
+	protected RangeNode pickRange(){
+		try {
+			range_sem.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} finally {range_sem.release();}
+		
 		return ranges.remove(0);
 	}
 
@@ -104,9 +116,14 @@ abstract public class Task {
 
 	/**Accounts for finished operations within a <b>Task</b>.
 	 * <br>Accessed by the <b>PoolThread</b>s.*/
-	protected synchronized void decreaseDoneCount(int mul, int sum){
-		mul_done -= mul;
-		sum_done -= sum;
+	protected void decreaseDoneCount(int mul, int sum){
+		try {
+			dec_count_sem.acquire();
+			mul_done -= mul;
+			sum_done -= sum;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} finally {dec_count_sem.release();}
 	}
 
 	/**<b>Task</b> calculation depends on the <b>Task</b> type.

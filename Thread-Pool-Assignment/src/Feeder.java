@@ -18,9 +18,10 @@ public class Feeder extends Thread{
 			boolean flag = pm.addTask(allTasks.get(n));
 			if(!flag){//pm is full and rejected the task in the index n.
 				n--;//try adding the rejected task again later.
-				try {
+				/*try {
 					synchronized (pm) {pm.wait();}
-				} catch (InterruptedException e) {e.printStackTrace();}
+				} catch (InterruptedException e) {e.printStackTrace();}*/
+				pm.feederAcquire();
 			}
 		}
 	}
